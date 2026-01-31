@@ -121,13 +121,16 @@ main() {
         sync_config "omarchy/hooks"
     fi
     
-    # Sync custom omarchy scripts
-    if [[ -d "$HOME/.local/share/omarchy/bin" ]]; then
-        log_info "Syncing omarchy scripts..."
-        mkdir -p "$REPO_DIR/scripts/omarchy"
-        find "$HOME/.local/share/omarchy/bin" -type f -executable -exec cp {} "$REPO_DIR/scripts/omarchy/" \;
-        log_success "Synced omarchy scripts"
+    # Sync custom hypr scripts  
+    if [[ -d "$HOME/.config/hypr/scripts" ]]; then
+        log_info "Syncing custom hypr scripts..."
+        mkdir -p "$SOURCE_DIR/hypr/scripts"
+        find "$HOME/.config/hypr/scripts" -type f -executable -exec cp {} "$SOURCE_DIR/hypr/scripts/" \;
+        log_success "Synced hypr scripts"
     fi
+    
+    # Sync standalone hypr scripts (in root hypr dir)
+    find "$CONFIG_DIR/hypr" -maxdepth 1 -name "*.sh" -type f -exec cp {} "$SOURCE_DIR/hypr/" \; 2>/dev/null || true
     
     log_success "All configurations synced!"
     echo

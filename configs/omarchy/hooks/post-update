@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Post-update hook to restore customizations after Omarchy updates
+# Place this in ~/.config/omarchy/hooks/post-update
+
+echo "🔄 Restoring customizations after Omarchy update..."
+
+# Restore modified scripts if they exist
+BACKUP_DIR="$HOME/omarchy-setup/backup-scripts"
+LOCAL_BIN="$HOME/.local/share/omarchy/bin"
+
+if [[ -f "$BACKUP_DIR/omarchy-launch-screensaver" ]]; then
+    echo "📋 Restoring omarchy-launch-screensaver..."
+    cp "$BACKUP_DIR/omarchy-launch-screensaver" "$LOCAL_BIN/"
+fi
+
+# Restore configurations from repo if they exist
+if [[ -f "$HOME/omarchy-setup/configs/hypr/autostart.conf" ]]; then
+    echo "⚙️ Restoring custom autostart configuration..."
+    cp "$HOME/omarchy-setup/configs/hypr/autostart.conf" "$HOME/.config/hypr/"
+fi
+
+if [[ -f "$HOME/omarchy-setup/configs/hypr/bindings.conf" ]]; then
+    echo "⌨️ Restoring custom keybindings..."
+    cp "$HOME/omarchy-setup/configs/hypr/bindings.conf" "$HOME/.config/hypr/"
+fi
+
+if [[ -f "$HOME/omarchy-setup/configs/hypr/hypridle.conf" ]]; then
+    echo "⏱️ Restoring custom idle configuration..."
+    cp "$HOME/omarchy-setup/configs/hypr/hypridle.conf" "$HOME/.config/hypr/"
+fi
+
+if [[ -f "$HOME/omarchy-setup/configs/hypr/hyprlock.conf" ]]; then
+    echo "🔒 Restoring custom lock screen configuration..."
+    cp "$HOME/omarchy-setup/configs/hypr/hyprlock.conf" "$HOME/.config/hypr/"
+fi
+
+echo "✅ Customizations restored successfully!"

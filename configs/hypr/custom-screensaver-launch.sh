@@ -1,26 +1,24 @@
 #!/bin/bash
 
-# Launch the Omarchy screensaver in the default terminal on the system with the correct font configuration.
+# Custom screensaver launcher with lock on exit
+# This is our own implementation that doesn't modify Omarchy defaults
 
-# Exit early if we don't have the tte show
 if ! command -v tte &>/dev/null; then
   exit 1
 fi
 
-# Exit early if screensave is already running
 pgrep -f org.omarchy.screensaver && exit 0
 
-# Allow screensaver to be turned off but also force started
 if [[ -f ~/.local/state/omarchy/toggles/screensaver-off ]] && [[ $1 != "force" ]]; then
   exit 1
 fi
 
-# Silently quit Walker on overlay
 walker -q
 
 focused=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name')
 terminal=$(xdg-terminal-exec --print-id)
 
+# Launch custom screensaver script in terminal windows
 for m in $(hyprctl monitors -j | jq -r '.[] | .name'); do
   hyprctl dispatch focusmonitor $m
 
@@ -29,21 +27,21 @@ for m in $(hyprctl monitors -j | jq -r '.[] | .name'); do
     hyprctl dispatch exec -- \
       alacritty --class=org.omarchy.screensaver \
       --config-file ~/.local/share/omarchy/default/alacritty/screensaver.toml \
-      -e omarchy-cmd-screensaver
+      -e ~/.config/hypr/screensaver-script.sh
     ;;
   *ghostty*)
     hyprctl dispatch exec -- \
       ghostty --class=org.omarchy.screensaver \
       --config-file=~/.local/share/omarchy/default/ghostty/screensaver \
       --font-size=18 \
-      -e omarchy-cmd-screensaver
+      -e ~/.config/hypr/screensaver-script.sh
     ;;
   *kitty*)
     hyprctl dispatch exec -- \
       kitty --class=org.omarchy.screensaver \
       --override font_size=18 \
       --override window_padding_width=0 \
-      -e omarchy-cmd-screensaver
+      -e ~/.config/hypr/screensaver-script.sh
     ;;
   *)
     notify-send "✋  Screensaver only runs in Alacritty, Ghostty, or Kitty"
@@ -52,3 +50,9 @@ for m in $(hyprctl monitors -j | jq -r '.[] | .name'); do
 done
 
 hyprctl dispatch focusmonitor $focused
+
+# Wait for screensaver windows to close, then lock
+while pgrep -f org.omarchy.screensaver >/dev/null; do
+  sleep 0.1
+done
+hyprlock

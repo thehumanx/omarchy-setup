@@ -2,6 +2,8 @@
 
 This repository contains my personal Omarchy Linux configuration files, customizations, and scripts.
 
+![Omarchy by DHH](https://learn.omacom.io/2/the-omarchy-manual)
+
 ## 🛠️ Components
 
 ### Window Manager & Desktop

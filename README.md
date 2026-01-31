@@ -11,8 +11,8 @@ This repository contains my personal Omarchy Linux configuration files, customiz
 - **Mako** - Notification daemon
 
 ### Terminal & Tools
-- **Alacritty/Kitty** - Terminal emulators
-- **Fastfetch** - System information tool
+- **Ghostty** - Terminal emulators -- default
+- **Fastfetch** - System information tool -- default
 - **Starship** - Custom shell prompt
 
 ### Customizations

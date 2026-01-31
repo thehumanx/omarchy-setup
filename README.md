@@ -110,6 +110,112 @@ cd ~
 tar -czf omarchy-backup-$(date +%Y%m%d).tar.gz .config/
 ```
 
+## 🔧 Maintenance Workflow
+
+### ✅ Do's and ❌ Don'ts
+
+#### 1. Making Config Changes
+
+**✅ DO:**
+- Edit configs directly in `~/.config/` 
+- Test changes immediately in your system
+- Run `~/omarchy-setup/scripts/sync-configs.sh` when done
+- Commit and push to git when ready
+
+**❌ DON'T:**
+- Edit files directly in `~/omarchy-setup/` (won't affect your system)
+- Forget to sync before committing
+- Edit files in `~/.local/share/omarchy/` (get overwritten on updates)
+
+**Example Workflow:**
+```bash
+# Edit configuration
+vim ~/.config/hypr/bindings.conf
+
+# Test changes (restart services if needed)
+hyprctl reload
+
+# Sync to repo when happy with changes
+~/omarchy-setup/scripts/sync-configs.sh
+
+# Commit and push
+cd ~/omarchy-setup
+git add -A
+git commit -m "Updated keybindings"
+git push
+```
+
+#### 2. Updating Omarchy
+
+**✅ DO:**
+- Run `~/omarchy-setup/scripts/sync-configs.sh` BEFORE updating (backup)
+- Update with `omarchy-update`
+- Run `~/omarchy-setup/recover-customizations.sh` if things break
+- Check that custom scripts still work after update
+
+**❌ DON'T:**
+- Update without backing up your configs first
+- Panic if defaults get overwritten (just run recovery script)
+
+**Update Workflow:**
+```bash
+# Before update - backup current configs
+~/omarchy-setup/scripts/sync-configs.sh
+
+# Update Omarchy
+omarchy-update
+
+# If something breaks, restore customizations
+~/omarchy-setup/recover-customizations.sh
+
+# Test everything works
+SUPER+SHIFT+S  # Test screensaver
+```
+
+#### 3. Using GitHub Config in New Setup
+
+**✅ DO:**
+1. `git clone <your-repo> ~/omarchy-setup`
+2. `cd ~/omarchy-setup`
+3. `stow configs` (symlinks to ~/.config/)
+4. `stow scripts` (if you have custom scripts)
+5. Restart services: `hyprctl reload`, `omarchy-restart-waybar`
+6. Test keybindings: `SUPER+SHIFT+S` for screensaver
+
+**❌ DON'T:**
+- Copy files manually (breaks symlink management)
+- Skip testing basic functionality
+- Forget to restore backup if installation fails
+
+**New System Setup:**
+```bash
+# Clone repository
+git clone https://github.com/YOUR_USERNAME/omarchy-setup.git ~/omarchy-setup
+
+# Install configurations (creates symlinks)
+cd ~/omarchy-setup
+stow configs
+stow scripts  # Only if you have custom scripts
+
+# Restart services to apply changes
+omarchy-restart-waybar
+hyprctl reload
+
+# Test custom features
+SUPER+SHIFT+S  # Test custom screensaver with lock
+```
+
+### 🔄 Custom Scripts and Features
+
+This setup includes custom modifications that are safe from Omarchy updates:
+
+- **Custom Screensaver System**: `~/.config/hypr/scripts/` - Screensaver with password on exit
+- **Power Management**: Custom TLP profiles with toggle scripts
+- **Enhanced Hyprlock**: Smooth face transitions and custom styling
+- **Keybinding Customizations**: Personalized shortcuts and workflows
+
+**Important:** These customizations live in `~/.config/hypr/` and are synced to the repo, making them safe from Omarchy updates.
+
 ## 🤝 Contributing
 
 This is a personal repository, but feel free to:

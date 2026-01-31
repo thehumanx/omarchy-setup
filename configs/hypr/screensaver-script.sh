@@ -22,15 +22,34 @@ hyprctl keyword cursor:invisible true &>/dev/null
 
 tty=$(tty 2>/dev/null)
 
-while true; do
-  tte -i ~/.config/omarchy/branding/screensaver.txt \
-    --frame-rate 120 --canvas-width 0 --canvas-height 0 --reuse-canvas --anchor-canvas c --anchor-text c\
-    --random-effect --exclude-effects dev_worm \
-    --no-eol --no-restore-cursor &
+# Add Python path to find terminaltexteffects module
+export PYTHONPATH="/usr/lib/python3.13/site-packages:$PYTHONPATH"
 
-  while pgrep -t "${tty#/dev/}" -x tte >/dev/null; do
-    if read -n1 -t 1 || ! screensaver_in_focus; then
-      exit_screensaver
-    fi
-  done
+while true; do
+  # Check if tte is available with adjusted Python path
+  if command -v tte >/dev/null 2>&1 && PYTHONPATH="/usr/lib/python3.13/site-packages:$PYTHONPATH" python3 -c "import terminaltexteffects" 2>/dev/null; then
+    # Run tte with adjusted Python path
+    PYTHONPATH="/usr/lib/python3.13/site-packages:$PYTHONPATH" tte -i ~/.config/omarchy/branding/screensaver.txt \
+      --frame-rate 120 --canvas-width 0 --canvas-height 0 --reuse-canvas --anchor-canvas c --anchor-text c\
+      --random-effect --exclude-effects dev_worm \
+      --no-eol --no-restore-cursor &
+
+    while pgrep -t "${tty#/dev/}" -x tte >/dev/null; do
+      if read -n1 -t 1 || ! screensaver_in_focus; then
+        exit_screensaver
+      fi
+    done
+  else
+    # Fallback: simple blank screen with clock
+    while true; do
+      clear
+      printf '\033]11;rgb:00/00/00\007'
+      echo "$(date '+%H:%M:%S')"
+      sleep 1
+      
+      if ! screensaver_in_focus; then
+        exit_screensaver
+      fi
+    done
+  fi
 done

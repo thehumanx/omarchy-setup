@@ -30,13 +30,19 @@ This repository contains my personal Omarchy Linux configuration files, customiz
 ```
 omarchy-setup/
 ├── README.md                 # This file
+├── CHANGELOG.md              # Changes and fixes documentation
 ├── install.sh               # (Optional) Installation script
+├── post-update             # Hook to restore customizations after updates
 ├── configs/                 # Configuration files
 │   ├── hypr/               # Hyprland configs
+│   │   ├── scripts/         # Custom Hypr scripts (including screensaver)
+│   │   ├── hyprlock.conf    # Custom lock screen config
+│   │   ├── hypridle.conf    # Custom idle/screensaver config
+│   │   └── ...
 │   ├── waybar/             # Waybar configs and custom scripts
 │   ├── walker/             # Walker launcher configs
 │   └── ...                 # Other application configs
-├── scripts/                # Custom scripts
+├── scripts/                # Standalone custom scripts
 │   ├── power-mode/         # Power management scripts
 │   └── ...                 # Other utility scripts
 └── themes/                 # Custom themes (if any)
@@ -50,16 +56,29 @@ omarchy-setup/
    ```
 
 2. Stow the configuration files:
-   ```bash
-   cd ~/omarchy-setup
-   stow configs  # Symlink configs to ~/.config/
-   ```
+    ```bash
+    cd ~/omarchy-setup
+    stow configs  # Symlink configs to ~/.config/
+    ```
 
-3. Restart services:
-   ```bash
-   omarchy-restart-waybar
-   hyprctl reload
-   ```
+3. Install custom scripts:
+    ```bash
+    mkdir -p ~/.config/hypr/scripts
+    cp configs/hypr/scripts/*.sh ~/.config/hypr/scripts/
+    chmod +x ~/.config/hypr/scripts/*.sh
+    ```
+
+4. Install post-update hook:
+    ```bash
+    cp post-update ~/.config/omarchy/hooks/
+    chmod +x ~/.config/omarchy/hooks/post-update
+    ```
+
+5. Restart services:
+    ```bash
+    omarchy-restart-waybar
+    hyprctl reload
+    ```
 
 ## ⚠️ Important Notes
 
@@ -78,7 +97,7 @@ omarchy-setup/
 - [Waybar] Added Spotify play
 - [PWRMGMT] Replaced *power-profile-daemon* with TLP using custom script for powersave and automatic profile toggles for my Lenovo Slim 7i.
 - [MISC] Updated look and feel, removed apps, webapps, scripts i do not need.
-- [Hyprlock] Unlock required after exit from screensaver
+- [Hyprlock] Unlock required after exit from screensaver (fixed after Omarchy update)
 - [Touchpad] 3-finger left-right for workspace, 4-finger top-down for volume
 
 ### Power Profiles
@@ -179,9 +198,19 @@ SUPER+SHIFT+S  # Test screensaver
 1. `git clone <your-repo> ~/omarchy-setup`
 2. `cd ~/omarchy-setup`
 3. `stow configs` (symlinks to ~/.config/)
-4. `stow scripts` (if you have custom scripts)
-5. Restart services: `hyprctl reload`, `omarchy-restart-waybar`
-6. Test keybindings: `SUPER+SHIFT+S` for screensaver
+4. Install custom scripts manually (scripts inside configs):
+   ```bash
+   mkdir -p ~/.config/hypr/scripts
+   cp configs/hypr/scripts/*.sh ~/.config/hypr/scripts/
+   chmod +x ~/.config/hypr/scripts/*.sh
+   ```
+5. Install post-update hook:
+   ```bash
+   cp post-update ~/.config/omarchy/hooks/
+   chmod +x ~/.config/omarchy/hooks/post-update
+   ```
+6. Restart services: `hyprctl reload`, `omarchy-restart-waybar`
+7. Test keybindings: `SUPER+SHIFT+S` for screensaver
 
 **❌ DON'T:**
 - Copy files manually (breaks symlink management)
@@ -196,7 +225,15 @@ git clone https://github.com/YOUR_USERNAME/omarchy-setup.git ~/omarchy-setup
 # Install configurations (creates symlinks)
 cd ~/omarchy-setup
 stow configs
-stow scripts  # Only if you have custom scripts
+
+# Install custom scripts manually (scripts are in configs/hypr/scripts/)
+mkdir -p ~/.config/hypr/scripts
+cp configs/hypr/scripts/*.sh ~/.config/hypr/scripts/
+chmod +x ~/.config/hypr/scripts/*.sh
+
+# Install post-update hook
+cp post-update ~/.config/omarchy/hooks/
+chmod +x ~/.config/omarchy/hooks/post-update
 
 # Restart services to apply changes
 omarchy-restart-waybar
@@ -210,12 +247,28 @@ SUPER+SHIFT+S  # Test custom screensaver with lock
 
 This setup includes custom modifications that are safe from Omarchy updates:
 
-- **Custom Screensaver System**: `~/.config/hypr/scripts/` - Screensaver with password on exit
+- **Custom Screensaver System**: `~/.config/hypr/scripts/` - Fixed screensaver with Python path compatibility and lock on exit
 - **Power Management**: Custom TLP profiles with toggle scripts
-- **Enhanced Hyprlock**: Smooth face transitions and custom styling
+- **Enhanced Hyprlock**: Fixed deprecated configuration options (removed animations, updated settings)
 - **Keybinding Customizations**: Personalized shortcuts and workflows
+- **Update Resilience**: Post-update hook to restore customizations automatically
 
-**Important:** These customizations live in `~/.config/hypr/` and are synced to the repo, making them safe from Omarchy updates.
+**Important:** These customizations live in `~/.config/hypr/` and are synced to repo, making them safe from Omarchy updates.
+
+### 🔧 Recent Fixes (Post-Update Issues)
+**Problem**: After Omarchy update, screensaver crashed with Python module errors and hyprlock configuration errors.
+
+**Solutions Applied**:
+1. **Python Path Fix**: Added `PYTHONPATH="/usr/lib/python3.13/site-packages:$PYTHONPATH"` to custom screensaver for Python 3.13/3.14 compatibility
+2. **Hyprlock Configuration**: Removed deprecated options (`fade_on_empty_timeout`, `placeholder_text_fade_time`, specific animations)
+3. **Post-Update Hook**: Ensures customizations survive future updates
+4. **Clean Separation**: Standalone custom screensaver implementation (doesn't modify omarchy defaults)
+
+**Working Configuration**:
+- ✅ **Ctrl+Super+S**: Standalone custom screensaver → locks after exit
+- ❌ **Omarchy system option**: Original screensaver → no lock (untouched)
+- ✅ **Update Resilience**: Automatic restoration via post-update hook
+- ✅ **No Conflicts**: Clean separation between custom and omarchy implementations
 
 ## 🤝 Contributing
 

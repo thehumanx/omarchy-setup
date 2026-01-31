@@ -35,6 +35,14 @@ if [[ -f "$HOME/omarchy-setup/configs/hypr/hyprlock.conf" ]]; then
     cp "$HOME/omarchy-setup/configs/hypr/hyprlock.conf" "$HOME/.config/hypr/"
 fi
 
+# Restore custom screensaver launcher
+if [[ -f "$HOME/omarchy-setup/configs/hypr/scripts/custom-screensaver-launch.sh" ]]; then
+    echo "🎬 Restoring custom screensaver launcher..."
+    mkdir -p "$HOME/.config/hypr/scripts"
+    cp "$HOME/omarchy-setup/configs/hypr/scripts/custom-screensaver-launch.sh" "$HOME/.config/hypr/scripts/"
+    chmod +x "$HOME/.config/hypr/scripts/custom-screensaver-launch.sh"
+fi
+
 
 
 echo "✅ Customizations restored successfully!"

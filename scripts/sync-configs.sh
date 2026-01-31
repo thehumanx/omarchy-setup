@@ -121,6 +121,14 @@ main() {
         sync_config "omarchy/hooks"
     fi
     
+    # Sync custom omarchy scripts
+    if [[ -d "$HOME/.local/share/omarchy/bin" ]]; then
+        log_info "Syncing omarchy scripts..."
+        mkdir -p "$REPO_DIR/scripts/omarchy"
+        find "$HOME/.local/share/omarchy/bin" -type f -executable -exec cp {} "$REPO_DIR/scripts/omarchy/" \;
+        log_success "Synced omarchy scripts"
+    fi
+    
     log_success "All configurations synced!"
     echo
     echo "Next steps:"

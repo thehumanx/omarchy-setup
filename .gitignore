@@ -1,0 +1,43 @@
+# Binaries and build artifacts
+*.o
+*.so
+*.dll
+*.exe
+
+# Temporary files
+*.tmp
+*.bak
+*.backup.*
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Cache directories
+.cache/
+__pycache__/
+node_modules/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sensitive data (don't commit personal secrets)
+*.key
+*.pem
+*.p12
+*secrets*
+
+# Personal backups (created by install script)
+*.backup.*

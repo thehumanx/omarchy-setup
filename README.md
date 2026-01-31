@@ -265,10 +265,11 @@ This setup includes custom modifications that are safe from Omarchy updates:
 4. **Clean Separation**: Standalone custom screensaver implementation (doesn't modify omarchy defaults)
 
 **Working Configuration**:
-- ✅ **Ctrl+Super+S**: Standalone custom screensaver → locks after exit
+- ✅ **Ctrl+Super+S**: Standalone custom screensaver → fade transition → locks after exit
 - ❌ **Omarchy system option**: Original screensaver → no lock (untouched)
 - ✅ **Update Resilience**: Automatic restoration via post-update hook
 - ✅ **No Conflicts**: Clean separation between custom and omarchy implementations
+- ✅ **Smooth Transition**: Subtle fade when moving from screensaver to lock screen
 
 ## 🤝 Contributing
 

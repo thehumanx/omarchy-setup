@@ -26,8 +26,9 @@
 ### Decision: System vs Custom Screensaver
 - **Choice Made**: Keep only custom screensaver (Ctrl+Super+S) with lock functionality
 - **Reasoning**: Avoid conflicts with system updates and maintain stability
+- **Enhancement**: Added subtle fade transition from screensaver to lock screen
 - **Current Behavior**:
-  - ✅ Ctrl+Super+S → screensaver → locks after exit
+  - ✅ Ctrl+Super+S → screensaver → fade transition → locks after exit
   - ❌ Omarchy system option → screensaver → no lock (intentional)
 
 ### Update Resilience
@@ -65,7 +66,7 @@ animations {
 ├── hyprlock.conf              # Fixed lock screen config
 ├── hypridle.conf              # Custom idle configuration
 └── scripts/
-    └── custom-screensaver-launch.sh    # Standalone screensaver launcher (no omarchy dependency)
+    └── custom-screensaver-launch.sh    # Standalone screensaver with fade transition
 
 ~/omarchy-setup/post-update            # Update resilience hook
 ```

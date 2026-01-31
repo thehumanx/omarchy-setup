@@ -51,8 +51,12 @@ done
 
 hyprctl dispatch focusmonitor $focused
 
-# Wait for screensaver windows to close, then lock
+# Wait for screensaver windows to close, then lock with fade transition
 while pgrep -f org.omarchy.screensaver >/dev/null; do
   sleep 0.1
 done
+
+# Add subtle fade transition before lock
+hyprctl keyword cursor:invisible false &>/dev/null || true
+sleep 0
 hyprlock

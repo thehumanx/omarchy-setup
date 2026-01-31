@@ -22,13 +22,6 @@ This repository contains my personal Omarchy Linux configuration files, customiz
 - **Scripts** - Utility scripts and automation -- customized
 
 
-## 📝 Changelogs
-- [Hyprland] I don't use mouse much, configured so settings for idea touchpad usage
-- [Waybar] Changed the look and feel of waybar from flat fill to module containers
-- [Waybar] Removed workspace and launcher as i use keyboard short and touchpad to switch between workspace and do not need those indicators and buttons
-- [Waybar] Added Spotify play
-- [PWRMGMT] Replaced *power-profile-daemon* with TLP using custom script for powersave and automatic profile toggles for my Lenovo Slim 7i.
-- [MISC] Updated look and feel, removed apps, webapps, scripts i do not need.
 
 ## 📁 Repository Structure
 
@@ -74,6 +67,13 @@ omarchy-setup/
 - Hardware-specific configurations (monitors, power management) may need adjustment
 
 ## 🎨 Customizations
+
+- [Hyprland] I don't use mouse much, configured so settings for idea touchpad usage
+- [Waybar] Changed the look and feel of waybar from flat fill to module containers
+- [Waybar] Removed workspace and launcher as i use keyboard short and touchpad to switch between workspace and do not need those indicators and buttons. Replaced it with window title.
+- [Waybar] Added Spotify play
+- [PWRMGMT] Replaced *power-profile-daemon* with TLP using custom script for powersave and automatic profile toggles for my Lenovo Slim 7i.
+- [MISC] Updated look and feel, removed apps, webapps, scripts i do not need.
 
 ### Power Profiles
 - Custom TLP power mode toggle (automatic ↔ powersaver)

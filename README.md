@@ -79,6 +79,7 @@ omarchy-setup/
 - [PWRMGMT] Replaced *power-profile-daemon* with TLP using custom script for powersave and automatic profile toggles for my Lenovo Slim 7i.
 - [MISC] Updated look and feel, removed apps, webapps, scripts i do not need.
 - [Hyprlock] Unlock required after exit from screensaver
+- [Touchpad] 3-finger left-right for workspace, 4-finger top-down for volume
 
 ### Power Profiles
 - Custom TLP power mode toggle (automatic ↔ powersaver)

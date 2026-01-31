@@ -5,21 +5,30 @@ This repository contains my personal Omarchy Linux configuration files, customiz
 ## 🛠️ Components
 
 ### Window Manager & Desktop
-- **Hyprland** - Wayland compositor configuration
-- **Waybar** - Status bar with custom modules
-- **Walker** - Application launcher
-- **Mako** - Notification daemon
+- **Hyprland** - Wayland compositor configuration -- customized
+- **Waybar** - Status bar with custom modules -- customized
+- **Walker** - Application launcher -- default
+- **Mako** - Notification daemon -- default
 
 ### Terminal & Tools
 - **Ghostty** - Terminal emulators -- default
 - **Fastfetch** - System information tool -- default
-- **Starship** - Custom shell prompt
+- **Starship** - Custom shell prompt -- default
 
 ### Customizations
-- **Power Management** - TLP profiles with toggle scripts
-- **Keybindings** - Personalized shortcuts
-- **Themes** - Custom theme configurations
-- **Scripts** - Utility scripts and automation
+- **Power Management** - TLP profiles with toggle scripts -- changed from power-profile-daemons
+- **Keybindings** - Personalized shortcuts -- customized
+- **Themes** - Custom theme configurations 
+- **Scripts** - Utility scripts and automation -- customized
+
+
+## 📝 Changelogs
+- [Hyprland] I don't use mouse much, configured so settings for idea touchpad usage
+- [Waybar] Changed the look and feel of waybar from flat fill to module containers
+- [Waybar] Removed workspace and launcher as i use keyboard short and touchpad to switch between workspace and do not need those indicators and buttons
+- [Waybar] Added Spotify play
+- [PWRMGMT] Replaced *power-profile-daemon* with TLP using custom script for powersave and automatic profile toggles for my Lenovo Slim 7i.
+- [MISC] Updated look and feel, removed apps, webapps, scripts i do not need.
 
 ## 📁 Repository Structure
 

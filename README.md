@@ -68,6 +68,8 @@ omarchy-setup/
 
 ## 🎨 Customizations
 
+![Desktop Screenshot](/images/screenshot-2026-01-31_15-37-53.png)
+
 - [Hyprland] I don't use mouse much, configured so settings for idea touchpad usage
 - [Waybar] Changed the look and feel of waybar from flat fill to module containers
 - [Waybar] Removed workspace and launcher as i use keyboard short and touchpad to switch between workspace and do not need those indicators and buttons. Replaced it with window title.

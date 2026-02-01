@@ -99,6 +99,7 @@ omarchy-setup/
 - [MISC] Updated look and feel, removed apps, webapps, scripts i do not need.
 - [Hyprlock] Unlock required after exit from screensaver (fixed after Omarchy update)
 - [Touchpad] 3-finger left-right for workspace, 4-finger top-down for volume
+- [Hyprlock] Customized to show clock + Spotify music
 
 ### Power Profiles
 - Custom TLP power mode toggle (automatic ↔ powersaver)
@@ -249,7 +250,7 @@ This setup includes custom modifications that are safe from Omarchy updates:
 
 - **Custom Screensaver System**: `~/.config/hypr/scripts/` - Fixed screensaver with Python path compatibility and lock on exit
 - **Power Management**: Custom TLP profiles with toggle scripts
-- **Enhanced Hyprlock**: Fixed deprecated configuration options (removed animations, updated settings)
+- **Enhanced Hyprlock**: Added clock, Spotify play and userimage
 - **Keybinding Customizations**: Personalized shortcuts and workflows
 - **Update Resilience**: Post-update hook to restore customizations automatically
 
@@ -260,7 +261,6 @@ This setup includes custom modifications that are safe from Omarchy updates:
 
 **Solutions Applied**:
 1. **Python Path Fix**: Added `PYTHONPATH="/usr/lib/python3.13/site-packages:$PYTHONPATH"` to custom screensaver for Python 3.13/3.14 compatibility
-2. **Hyprlock Configuration**: Removed deprecated options (`fade_on_empty_timeout`, `placeholder_text_fade_time`, specific animations)
 3. **Post-Update Hook**: Ensures customizations survive future updates
 4. **Clean Separation**: Standalone custom screensaver implementation (doesn't modify omarchy defaults)
 

@@ -107,6 +107,7 @@ main() {
     sync_config "ghostty"
     sync_config "alacritty"
     sync_config "kitty"
+    sync_config "system-tweaks"
     
     # Sync specific individual files
     sync_files "starship" "starship.toml"

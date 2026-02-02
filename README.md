@@ -100,6 +100,7 @@ omarchy-setup/
 - [Hyprlock] Unlock required after exit from screensaver (fixed after Omarchy update)
 - [Touchpad] 3-finger left-right for workspace, 4-finger top-down for volume
 - [Hyprlock] Customized to show clock + Spotify music
+- [Input] Changed natural scroll and scroll factor
 
 ### Power Profiles
 - Custom TLP power mode toggle (automatic ↔ powersaver)

@@ -1,41 +1,58 @@
 #!/bin/bash
 
 # TLP Power Profile Indicator for Waybar
-# Returns current power mode from your custom toggle script
-
 get_power_mode() {
-    # Get current mode from your power mode toggle script
     local mode=$(/home/bbk/.config/omarchy/power-mode/power-mode-toggle.sh get 2>/dev/null)
-    
     case "$mode" in
-        "powersaver")
-            echo "󰛃"  # Battery icon for powersaver
-            ;;
-        "automatic")
-            echo "󰚥"  # Power icon for automatic
-            ;;
-        *)
-            echo "󰾪"  # Default/unknown icon
-            ;;
+        "powersaver") echo "󰛃" ;;
+        "automatic")  echo "󰚥" ;;
+        *)            echo "󰾪" ;;
     esac
 }
 
 get_mode_details() {
-    # Get current mode and power source
     local mode=$(/home/bbk/.config/omarchy/power-mode/power-mode-toggle.sh get 2>/dev/null)
-    local power_source="Unknown"
+    local bat_path=$(find /sys/class/power_supply/ -name "BAT*" | head -n 1)
+    local status=$(cat "$bat_path/status" 2>/dev/null)
     
-    if grep -q "1" /sys/class/power_supply/AC/online 2>/dev/null; then
-        power_source="AC Power"
-    elif grep -q "Discharging" /sys/class/power_supply/BAT*/status 2>/dev/null; then
-        power_source="Battery Power"
+    # 1. Calculate SOT (Time since last discharge began)
+    # Uses the modification time of the battery status file as a proxy
+    local last_change=$(stat -c %Y "$bat_path/status")
+    local now=$(date +%s)
+    local diff=$((now - last_change))
+    
+    if [[ "$status" == "Discharging" ]]; then
+        local hours=$((diff / 3600))
+        local mins=$(((diff % 3600) / 60))
+        local sot_text="${hours}h ${mins}m"
+        local power_source="Battery Power"
+    else
+        local sot_text="Charging/Full"
+        local power_source="AC Power"
     fi
-    
-    echo "Mode: $mode\\nSource: $power_source\\n\\nClick to toggle"
+
+    # 2. Get Estimates from upower
+    local estimate=$(upower -i $(upower -e | grep 'BAT') | grep "time to empty" | awk -F': +' '{print $2}')
+    [[ -z "$estimate" ]] && estimate="Calculating..."
+
+    # 3. Get Wattage (Current Drain)
+    local voltage=$(cat "$bat_path/voltage_now")
+    local current=$(cat "$bat_path/current_now")
+    local watts=$(echo "scale=2; ($voltage * $current) / 1000000000000" | bc -l)
+
+    # Format Tooltip Output
+    echo "Mode: $mode"
+    echo "Source: $power_source"
+    echo "----------------------"
+    echo "Current SOT: $sot_text"
+    echo "Remaining: $estimate"
+    echo "Drain Rate: ${watts}W"
+    echo "----------------------"
+    echo "Click to toggle"
 }
 
 # Output JSON for Waybar
 ICON=$(get_power_mode)
-DETAILS=$(get_mode_details)
+DETAILS=$(get_mode_details | sed ':a;N;$!ba;s/\n/\\n/g') # Convert newlines for JSON
 
-echo "{\"text\": \"$ICON\", \"tooltip\": \"Power Profile\\n$DETAILS\"}"
+echo "{\"text\": \"$ICON\", \"tooltip\": \"$DETAILS\"}"

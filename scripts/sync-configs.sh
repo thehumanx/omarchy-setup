@@ -108,10 +108,12 @@ main() {
     sync_config "alacritty"
     sync_config "kitty"
     sync_config "system-tweaks"
+    sync_config "omarchy"
+    
     
     # Sync specific individual files
     sync_files "starship" "starship.toml"
-    sync_files "git" "config"
+    sync_files "git"
     
     # Sync custom omarchy configurations if they exist
     if [[ -d "$CONFIG_DIR/omarchy/themes" ]]; then

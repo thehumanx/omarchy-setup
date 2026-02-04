@@ -101,6 +101,7 @@ omarchy-setup/
 - [Touchpad] 3-finger left-right for workspace, 4-finger top-down for volume
 - [Hyprlock] Customized to show clock + Spotify music
 - [Input] Changed natural scroll and scroll factor
+- [About] Went personal 
 
 ### Power Profiles
 - Custom TLP power mode toggle (automatic ↔ powersaver)

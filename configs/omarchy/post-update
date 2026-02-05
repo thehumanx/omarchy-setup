@@ -35,6 +35,36 @@ if [[ -f "$HOME/omarchy-setup/configs/hypr/hyprlock.conf" ]]; then
     cp "$HOME/omarchy-setup/configs/hypr/hyprlock.conf" "$HOME/.config/hypr/"
 fi
 
+# Restore system-tweaks configurations
+if [[ -d "$HOME/omarchy-setup/configs/system-tweaks" ]]; then
+    echo "⚡ Restoring system-tweaks..."
+    mkdir -p "$HOME/.config/system-tweaks"
+    cp "$HOME/omarchy-setup/configs/system-tweaks/"* "$HOME/.config/system-tweaks/"
+fi
 
+# Restore omarchy extensions (menu overrides)
+if [[ -f "$HOME/omarchy-setup/configs/omarchy/extensions/menu.sh" ]]; then
+    echo "📝 Restoring menu extensions..."
+    mkdir -p "$HOME/.config/omarchy/extensions"
+    cp "$HOME/omarchy-setup/configs/omarchy/extensions/menu.sh" "$HOME/.config/omarchy/extensions/"
+fi
+
+# Restore custom hypr scripts
+if [[ -d "$HOME/omarchy-setup/configs/hypr/scripts" ]]; then
+    echo "🔧 Restoring custom hypr scripts..."
+    mkdir -p "$HOME/.config/hypr/scripts"
+    cp "$HOME/omarchy-setup/configs/hypr/scripts/"* "$HOME/.config/hypr/scripts/"
+fi
+
+# Restore standalone hypr scripts
+if [[ -f "$HOME/omarchy-setup/configs/hypr/custom-screensaver-launch.sh" ]]; then
+    echo "🎨 Restoring custom screensaver launcher..."
+    cp "$HOME/omarchy-setup/configs/hypr/custom-screensaver-launch.sh" "$HOME/.config/hypr/"
+fi
+
+if [[ -f "$HOME/omarchy-setup/configs/hypr/screensaver-script.sh" ]]; then
+    echo "🎨 Restoring screensaver script..."
+    cp "$HOME/omarchy-setup/configs/hypr/screensaver-script.sh" "$HOME/.config/hypr/"
+fi
 
 echo "✅ Customizations restored successfully!"

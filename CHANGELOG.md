@@ -1,5 +1,35 @@
 # Changelog - Omarchy Setup
 
+## 2026-02-05 - Force Shutdown & System Menu Reset
+
+### Changes Made
+1. **Reset Omarchy System Menu to Defaults**
+   - Reset hypridle, hyprlock, and hyprland configs to factory defaults
+   - Restores standard lock, screensaver, hibernate, restart, shutdown behavior
+
+2. **Added Force Shutdown Feature**
+   - **Problem**: Normal shutdown hangs after long uptime or hibernation
+   - **Solution**: Custom force shutdown that kills all apps immediately
+   - **Location**: `~/.config/system-tweaks/force-shutdown.sh`
+   - **Menu Integration**: System menu override in `~/.config/omarchy/extensions/menu.sh`
+   - **Safe for Updates**: Lives in user config directory
+
+3. **Updated Backup/Restore System**
+   - Added `system-tweaks/` folder to sync script
+   - Added `omarchy/extensions/` folder to sync script
+   - Updated `post-update` hook to restore new components
+   - Updated `recover-customizations.sh` for manual recovery
+
+### Files Added/Modified
+```
+~/.config/system-tweaks/
+├── force-shutdown.sh         # New: Force shutdown script
+└── logind.conf               # Existing: Login/power settings
+
+~/.config/omarchy/extensions/
+└── menu.sh                   # New: System menu override with force shutdown
+```
+
 ## 2026-01-31 - Post-Update Screensaver Fixes
 
 ### Issues Fixed

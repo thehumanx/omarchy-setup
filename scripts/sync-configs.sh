@@ -124,6 +124,19 @@ main() {
         sync_config "omarchy/hooks"
     fi
     
+    # Sync omarchy extensions (menu overrides, etc.)
+    if [[ -d "$CONFIG_DIR/omarchy/extensions" ]]; then
+        sync_config "omarchy/extensions"
+    fi
+    
+    # Sync standalone system-tweaks scripts
+    if [[ -d "$CONFIG_DIR/system-tweaks" ]]; then
+        log_info "Syncing system-tweaks..."
+        mkdir -p "$SOURCE_DIR/system-tweaks"
+        find "$CONFIG_DIR/system-tweaks" -type f -name "*.sh" -exec cp {} "$SOURCE_DIR/system-tweaks/" \;
+        log_success "Synced system-tweaks"
+    fi
+    
     # Sync custom hypr scripts  
     if [[ -d "$HOME/.config/hypr/scripts" ]]; then
         log_info "Syncing custom hypr scripts..."

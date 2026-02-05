@@ -64,17 +64,6 @@ label{
    	rounding = -1
 }
 
-label{
-	monitor =
-	text = cmd[update:60000] date +"%a, %b %d %Y"
-	font_size = 16
-	font_family = CaskaydiaMono Nerd Font
-	font_color = $font_color
-	position = 0, 330
-	halign = center
-	valign = center
-}
-
  label{
     monitor =
     text = cmd[update:2000] if playerctl -p spotify status 2>/dev/null >/dev/null; then echo "🎵 $(playerctl -p spotify metadata artist 2>/dev/null) - $(playerctl -p spotify metadata title 2>/dev/null)" | cut -c 1-40 | sed 's/$/.../'; else echo "Spotify not opened"; fi
@@ -82,7 +71,7 @@ label{
     font_size = 11
     font_family = CaskaydiaMono Nerd Font
     font_color = $font_color
-    position = 0, -500
+    position = 0, 300
     halign = center
     valign = center
     max_length = 50
@@ -94,7 +83,7 @@ shape{
 	size = 420, 40
 	rounding = -1
 	border_size = 0
-	position = 0, -500
+	position = 0, 300
 	halign = center
 	valign = center
 	zindex = 0

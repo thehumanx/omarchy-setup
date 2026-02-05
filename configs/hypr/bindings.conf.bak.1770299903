@@ -53,3 +53,6 @@ unbind = ALT, PRINT, Screenrecording, exec, omarchy-menu screenrecord
 unbind = SUPER, PRINT, Color picker, exec, pkill hyprpicker || hyprpicker -a
 bindd = SUPER CTRL SHIFT, S, Screenshot to clipboard, exec, omarchy-cmd-screenshot smart clipboard
 bindd = SUPER CTRL SHIFT, R, Screenrecording, exec, omarchy-menu screenrecord
+
+
+

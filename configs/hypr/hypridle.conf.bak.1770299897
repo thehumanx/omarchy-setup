@@ -7,12 +7,12 @@ general {
 
 listener {
     timeout = 150                                             # 2.5min
-    on-timeout = pidof hyprlock || omarchy-launch-screensaver # start screensaver (if we haven't locked already)
+    on-timeout = pidof hyprlock || ~/.config/hypr/scripts/custom-screensaver-launch.sh # start screensaver (if we haven't locked already)
 }
 
 listener {
     timeout = 151                      # 5min
-    on-timeout = loginctl lock-session # lock screen when timeout has passed
+    on-timeout = hyprlock             # lock screen when timeout has passed
 }
 
 listener {

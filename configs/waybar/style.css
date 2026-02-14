@@ -64,11 +64,11 @@ window#waybar.empty #window {
 #custom-screenrecording-indicator,
 #custom-update {
   min-width: 12px;
-  margin: 0 7.5px;
+  margin: 0px;
 }
 
 #tray {
-  margin-right: 16px;
+  margin-right: 4px;
 }
 
 #bluetooth {
@@ -77,11 +77,11 @@ window#waybar.empty #window {
 }
 
 #network {
-  margin-right: 13px;
+  margin-right: 4px;
 }
 
 #custom-expand-icon {
-  margin-right: 18px;
+  margin-right: 4px;
 }
 
 tooltip {

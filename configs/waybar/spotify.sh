@@ -8,7 +8,7 @@ get_spotify_info() {
     status=$(playerctl -p spotify status 2>/dev/null)
     
     if [ "$status" = "No player found" ] || [ -z "$status" ]; then
-        echo '{"text": "󰝚", "tooltip": "Spotify not running", "class": "stopped"}'
+        echo '{"text": "󰝚 Spotify not open", "tooltip": "Spotify not running", "class": "stopped"}'
         return
     fi
     

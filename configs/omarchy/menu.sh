@@ -15,8 +15,8 @@ show_system_menu() {
   *Screensaver*) omarchy-launch-screensaver force ;;
   *Suspend*) systemctl suspend ;;
   *Hibernate*) systemctl hibernate ;;
-  *Restart*) omarchy-cmd-reboot ;;
-  *Shutdown*) ~/.config/system-tweaks/force-shutdown.sh ;;
+  *Restart*) shutdown -r now ;;
+  *Shutdown*) shutdown now ;;
   *) back_to show_main_menu ;;
   esac
 }

@@ -81,13 +81,6 @@
     "tooltip": true,
     "tooltip-format": "Used: {used:0.1f}G / {total:0.1f}G"
   },
-  "custom/bandwidth": {
-    "exec": "~/.config/waybar/indicators/bandwidth.sh",
-    "interval": 1,
-    "format": "{}",
-    "tooltip": true,
-    "tooltip-format": "Network Bandwidth"
-  },
   "custom/notifications": {
     "exec": "~/.config/waybar/indicators/notifications.sh",
     "interval": 1,
@@ -119,7 +112,7 @@
     "tooltip-format-ethernet": "⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
     "tooltip-format-disconnected": "Disconnected",
     "interval": 3,
-    "spacing": 1,
+    "spacing": 0,
     "on-click": "omarchy-launch-wifi"
   },
   "custom/power-mode-test": {
@@ -130,7 +123,7 @@
   "battery": {
     "format": "/ {capacity}%",
     "format-discharging": "/ {capacity}%",
-    "format-charging": "/ {icon}{capacity}%",
+    "format-charging": "/ {icon} {capacity}%",
     "format-plugged": "",
     "format-icons": {
       "charging": [
@@ -191,11 +184,11 @@
     "scroll-step": 5,
     "format-muted": "",
     "format-icons": {
-      "headphone": "",
+      "headphone": " ",
       "default": [
-        "",
-        "",
-        ""
+        " ",
+        " ",
+        " "
       ]
     }
   },
@@ -250,6 +243,6 @@
   },
   "tray": {
     "icon-size": 12,
-    "spacing": 17
+    "spacing": 16
   }
 }

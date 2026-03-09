@@ -1,12 +1,9 @@
 return {
-  {
-    "ribru17/bamboo.nvim",
-    priority = 1000,
-  },
-  {
-    "LazyVim/LazyVim",
-    opts = {
-      colorscheme = "bamboo",
-    },
-  },
+	{ "ellisonleao/gruvbox.nvim" },
+	{
+		"LazyVim/LazyVim",
+		opts = {
+			colorscheme = "gruvbox",
+		},
+	},
 }

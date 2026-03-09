@@ -2,16 +2,17 @@
   "reload_style_on_change": true,
   "layer": "bottom",
   "position": "top",
-  "margin-top": 8,
-  "margin-left": 8,
-  "margin-right": 8,
+  "margin-top": 4,
+  "margin-left": 4,
+  "margin-right": 4,
   "spacing": 0,
-  "height": 26,
+  "height": 24,
   "modules-left": [
       "hyprland/window"
   ],
   "modules-center": [
     "clock",
+    "custom/print-status",
     "custom/update",
     "custom/spotify",
     "custom/voxtype",
@@ -69,14 +70,14 @@
   },
   "cpu": {
     "interval": 5,
-    "format": "/ 󰍛 {usage}%",
+    "format": "• 󰍛 {usage}%",
     "on-click": "omarchy-launch-or-focus-tui btop",
     "on-click-right": "alacritty",
     "tooltip": true
   },
   "memory": {
     "interval": 5,
-    "format": "/ 󰘚 {percentage}%",
+    "format": "• 󰘚 {percentage}%",
     "on-click": "omarchy-launch-or-focus-tui btop",
     "tooltip": true,
     "tooltip-format": "Used: {used:0.1f}G / {total:0.1f}G"
@@ -91,10 +92,18 @@
     "tooltip-format": "Left click: Toggle Do Not Disturb | Right click: Clear all notifications"
   },
   "clock": {
-    "format": "{:L%d %b, %a %H:%M} / ",
-    "format-alt": "{:L%d %B W%V %Y} / ",
+    "format": "{:L%d %b, %a %H:%M} • ",
+    "format-alt": "{:L%d %B W%V %Y} • ",
     "tooltip": false,
     "on-click-right": "omarchy-launch-floating-terminal-with-presentation omarchy-tz-select"
+  },
+  "custom/print-status": {
+    "exec": "~/.config/waybar/indicators/print-status.sh",
+    "return-type": "json",
+    "interval": 1,
+    "format": "{}",
+    "min-width": 120,
+    "tooltip": true
   },
   "network": {
     "format-icons": [
@@ -105,7 +114,7 @@
       "󰤨"
     ],
     "format": "{essid}",
-    "format-wifi": "/ {essid}",
+    "format-wifi": "• {essid}",
     "format-ethernet": "󰀂",
     "format-disconnected": "No Wifi",
     "tooltip-format-wifi": "{essid} ({frequency} GHz)\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}",
@@ -121,9 +130,9 @@
     "interval": 5
   },
   "battery": {
-    "format": "/ {capacity}%",
-    "format-discharging": "/ {capacity}%",
-    "format-charging": "/ {icon} {capacity}%",
+    "format": "• {capacity}%",
+    "format-discharging": "•{capacity}%",
+    "format-charging": "•{icon} {capacity}%",
     "format-plugged": "",
     "format-icons": {
       "charging": [
@@ -177,14 +186,15 @@
     "on-click": "omarchy-launch-bluetooth"
   },
   "pulseaudio": {
-    "format": "/ {icon} {volume}%",
+    "format": "• {icon} {volume}%",
     "on-click": "omarchy-launch-audio",
     "on-click-right": "pamixer -t",
     "tooltip-format": "Playing at {volume}%",
     "scroll-step": 5,
-    "format-muted": "",
+    "format-muted": " ",
     "format-icons": {
       "headphone": " ",
+      "headset": "",
       "default": [
         " ",
         " ",
@@ -239,7 +249,20 @@
     "on-click-right": "spotify",
     "on-scroll-up": "playerctl next",
     "on-scroll-down": "playerctl previous",
-    "max-length": 16
+    "max-length": 200,
+    "min-width": 10
+  },
+  "custom/idle-indicator": {
+    "on-click": "omarchy-toggle-idle",
+    "exec": "$OMARCHY_PATH/default/waybar/indicators/idle.sh",
+    "signal": 9,
+    "return-type": "json"
+  },
+  "custom/notification-silencing-indicator": {
+    "on-click": "omarchy-toggle-notification-silencing",
+    "exec": "$OMARCHY_PATH/default/waybar/indicators/notification-silencing.sh",
+    "signal": 10,
+    "return-type": "json"
   },
   "tray": {
     "icon-size": 12,

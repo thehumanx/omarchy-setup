@@ -1,47 +1,47 @@
 [colors.primary]
-background = "#111c18"
-foreground = "#C1C497"
+background = "#282828"
+foreground = "#d4be98"
 
 [colors.cursor]
-text = "#111c18"
-cursor = "#D7C995"
+text = "#282828"
+cursor = "#bdae93"
 
 [colors.vi_mode_cursor]
-text = "#111c18"
-cursor = "#D7C995"
+text = "#282828"
+cursor = "#bdae93"
 
 [colors.search.matches]
-foreground = "#111c18"
-background = "#459451"
+foreground = "#282828"
+background = "#d8a657"
 
 [colors.search.focused_match]
-foreground = "#111c18"
-background = "#FF5345"
+foreground = "#282828"
+background = "#ea6962"
 
 [colors.footer_bar]
-foreground = "#111c18"
-background = "#C1C497"
+foreground = "#282828"
+background = "#d4be98"
 
 [colors.selection]
-text = "#111C18"
-background = "#C1C497"
+text = "#ebdbb2"
+background = "#d65d0e"
 
 [colors.normal]
-black = "#23372B"
-red = "#FF5345"
-green = "#549e6a"
-yellow = "#459451"
-blue = "#509475"
-magenta = "#D2689C"
-cyan = "#2DD5B7"
-white = "#F6F5DD"
+black = "#3c3836"
+red = "#ea6962"
+green = "#a9b665"
+yellow = "#d8a657"
+blue = "#7daea3"
+magenta = "#d3869b"
+cyan = "#89b482"
+white = "#d4be98"
 
 [colors.bright]
-black = "#53685B"
-red = "#db9f9c"
-green = "#63b07a"
-yellow = "#E5C736"
-blue = "#ACD4CF"
-magenta = "#75bbb3"
-cyan = "#8CD3CB"
-white = "#9eebb3"
+black = "#3c3836"
+red = "#ea6962"
+green = "#a9b665"
+yellow = "#d8a657"
+blue = "#7daea3"
+magenta = "#d3869b"
+cyan = "#89b482"
+white = "#d4be98"

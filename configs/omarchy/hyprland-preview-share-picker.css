@@ -1,12 +1,12 @@
-@define-color foreground #C1C497;
-@define-color background #111c18;
-@define-color accent #509475;
-@define-color muted #53685B;
-@define-color card_bg #23372B;
-@define-color text_dark #111c18;
-@define-color accent_hover #ACD4CF;
-@define-color selected_tab #509475;
-@define-color text #C1C497;
+@define-color foreground #d4be98;
+@define-color background #282828;
+@define-color accent #7daea3;
+@define-color muted #3c3836;
+@define-color card_bg #3c3836;
+@define-color text_dark #282828;
+@define-color accent_hover #7daea3;
+@define-color selected_tab #7daea3;
+@define-color text #d4be98;
 
 * {
   all: unset;

@@ -1,70 +1,67 @@
 #!/bin/bash
 
 # Post-update hook to restore customizations after Omarchy updates
-# Place this in ~/.config/omarchy/hooks/post-update
+# Installed at ~/.config/omarchy/hooks/post-update
 
-echo "🔄 Restoring customizations after Omarchy update..."
+set -euo pipefail
 
-# Restore modified scripts if they exist
-BACKUP_DIR="$HOME/omarchy-setup/backup-scripts"
-LOCAL_BIN="$HOME/.local/share/omarchy/bin"
+SETUP_DIR="$HOME/omarchy-setup"
+CONFIG_DIR="$HOME/.config"
 
-if [[ -f "$BACKUP_DIR/omarchy-launch-screensaver" ]]; then
-    echo "📋 Restoring omarchy-launch-screensaver..."
-    cp "$BACKUP_DIR/omarchy-launch-screensaver" "$LOCAL_BIN/"
-fi
+echo "--- Restoring customizations after Omarchy update ---"
 
-# Restore configurations from repo if they exist
-if [[ -f "$HOME/omarchy-setup/configs/hypr/autostart.conf" ]]; then
-    echo "⚙️ Restoring custom autostart configuration..."
-    cp "$HOME/omarchy-setup/configs/hypr/autostart.conf" "$HOME/.config/hypr/"
-fi
+restore_config() {
+  local src="$1"
+  local dst="$2"
+  if [[ -f "$src" ]]; then
+    mkdir -p "$(dirname "$dst")"
+    cp "$src" "$dst"
+    echo "  Restored: $dst"
+  fi
+}
 
-if [[ -f "$HOME/omarchy-setup/configs/hypr/bindings.conf" ]]; then
-    echo "⌨️ Restoring custom keybindings..."
-    cp "$HOME/omarchy-setup/configs/hypr/bindings.conf" "$HOME/.config/hypr/"
-fi
+restore_dir() {
+  local src="$1"
+  local dst="$2"
+  if [[ -d "$src" ]]; then
+    mkdir -p "$dst"
+    cp -r "$src"/* "$dst/"
+    echo "  Restored: $dst/"
+  fi
+}
 
-if [[ -f "$HOME/omarchy-setup/configs/hypr/hypridle.conf" ]]; then
-    echo "⏱️ Restoring custom idle configuration..."
-    cp "$HOME/omarchy-setup/configs/hypr/hypridle.conf" "$HOME/.config/hypr/"
-fi
+# Hyprland configs
+restore_config "$SETUP_DIR/configs/hypr/autostart.conf"     "$CONFIG_DIR/hypr/autostart.conf"
+restore_config "$SETUP_DIR/configs/hypr/bindings.conf"      "$CONFIG_DIR/hypr/bindings.conf"
+restore_config "$SETUP_DIR/configs/hypr/hypridle.conf"      "$CONFIG_DIR/hypr/hypridle.conf"
+restore_config "$SETUP_DIR/configs/hypr/hyprlock.conf"      "$CONFIG_DIR/hypr/hyprlock.conf"
+restore_config "$SETUP_DIR/configs/hypr/hyprsunset.conf"    "$CONFIG_DIR/hypr/hyprsunset.conf"
+restore_config "$SETUP_DIR/configs/hypr/input.conf"         "$CONFIG_DIR/hypr/input.conf"
+restore_config "$SETUP_DIR/configs/hypr/looknfeel.conf"     "$CONFIG_DIR/hypr/looknfeel.conf"
+restore_config "$SETUP_DIR/configs/hypr/monitors.conf"      "$CONFIG_DIR/hypr/monitors.conf"
+restore_config "$SETUP_DIR/configs/hypr/xdph.conf"          "$CONFIG_DIR/hypr/xdph.conf"
 
-if [[ -f "$HOME/omarchy-setup/configs/hypr/hyprlock.conf" ]]; then
-    echo "🔒 Restoring custom lock screen configuration..."
-    cp "$HOME/omarchy-setup/configs/hypr/hyprlock.conf" "$HOME/.config/hypr/"
-fi
+# Hypr scripts
+restore_dir "$SETUP_DIR/configs/hypr/scripts"               "$CONFIG_DIR/hypr/scripts"
+restore_config "$SETUP_DIR/configs/hypr/screensaver-script.sh" "$CONFIG_DIR/hypr/screensaver-script.sh"
+restore_config "$SETUP_DIR/configs/hypr/screensaver-lock.sh"   "$CONFIG_DIR/hypr/screensaver-lock.sh"
 
-# Restore system-tweaks configurations
-if [[ -d "$HOME/omarchy-setup/configs/system-tweaks" ]]; then
-    echo "⚡ Restoring system-tweaks..."
-    mkdir -p "$HOME/.config/system-tweaks"
-    cp "$HOME/omarchy-setup/configs/system-tweaks/"* "$HOME/.config/system-tweaks/"
-fi
+# Waybar configs
+restore_config "$SETUP_DIR/configs/waybar/config.jsonc"     "$CONFIG_DIR/waybar/config.jsonc"
+restore_config "$SETUP_DIR/configs/waybar/style.css"        "$CONFIG_DIR/waybar/style.css"
+restore_dir "$SETUP_DIR/configs/waybar/indicators"          "$CONFIG_DIR/waybar/indicators"
 
-# Restore omarchy extensions (menu overrides)
-if [[ -f "$HOME/omarchy-setup/configs/omarchy/extensions/menu.sh" ]]; then
-    echo "📝 Restoring menu extensions..."
-    mkdir -p "$HOME/.config/omarchy/extensions"
-    cp "$HOME/omarchy-setup/configs/omarchy/extensions/menu.sh" "$HOME/.config/omarchy/extensions/"
-fi
+# Omarchy custom modules
+restore_dir "$SETUP_DIR/configs/omarchy/power-mode"         "$CONFIG_DIR/omarchy/power-mode"
+restore_config "$SETUP_DIR/configs/omarchy/bluetooth-state.sh" "$CONFIG_DIR/omarchy/bluetooth-state.sh"
 
-# Restore custom hypr scripts
-if [[ -d "$HOME/omarchy-setup/configs/hypr/scripts" ]]; then
-    echo "🔧 Restoring custom hypr scripts..."
-    mkdir -p "$HOME/.config/hypr/scripts"
-    cp "$HOME/omarchy-setup/configs/hypr/scripts/"* "$HOME/.config/hypr/scripts/"
-fi
+# System-tweaks
+restore_dir "$SETUP_DIR/configs/system-tweaks"              "$CONFIG_DIR/system-tweaks"
 
-# Restore standalone hypr scripts
-if [[ -f "$HOME/omarchy-setup/configs/hypr/custom-screensaver-launch.sh" ]]; then
-    echo "🎨 Restoring custom screensaver launcher..."
-    cp "$HOME/omarchy-setup/configs/hypr/custom-screensaver-launch.sh" "$HOME/.config/hypr/"
-fi
+# Ensure scripts are executable
+chmod +x "$CONFIG_DIR/hypr/scripts/"*.sh 2>/dev/null || true
+chmod +x "$CONFIG_DIR/hypr/"*.sh 2>/dev/null || true
+chmod +x "$CONFIG_DIR/omarchy/power-mode/"*.sh 2>/dev/null || true
+chmod +x "$CONFIG_DIR/omarchy/bluetooth-state.sh" 2>/dev/null || true
 
-if [[ -f "$HOME/omarchy-setup/configs/hypr/screensaver-script.sh" ]]; then
-    echo "🎨 Restoring screensaver script..."
-    cp "$HOME/omarchy-setup/configs/hypr/screensaver-script.sh" "$HOME/.config/hypr/"
-fi
-
-echo "✅ Customizations restored successfully!"
+echo "--- Customizations restored ---"

@@ -1,5 +1,53 @@
 # Changelog - Omarchy Setup
 
+## 2026-05-16 - Waybar Pill Modules & Repo Cleanup
+
+### Changes Made
+1. **Waybar Module Container Redesign**
+   - Each module is now a self-contained pill with semi-transparent background (alpha(@background, 0.55)), border-radius (8px), padding (0 10px), and margins (3px)
+   - Bar background made transparent (was solid color)
+   - Bar height increased from 26 to 30
+   - Backdrop-filter removed (not supported by Waybar's CSS engine)
+
+2. **Repo Structure Cleanup**
+   - Removed old Gruvbox theme files (alacritty.toml, btop.theme, colors.toml, hyprland.conf, etc.) — these are stock Omarchy theme files, not custom
+   - Removed empty directories (backup-scripts/, configs/git/, configs/mako/)
+   - Removed all *.bak.* files
+   - Removed old background images (1-the-backwater.jpg, 2-leaves.jpg)
+   - Removed obsolete files (icons.theme, keyboard.rgb, hyprland-preview-share-picker.css, preview.png)
+
+3. **Configs Reorganized**
+   - `configs/omarchy/` restructured from flat mess to proper subdirectories: branding/, extensions/, hooks/, power-mode/
+   - Added bluetooth-state.sh
+   - `configs/waybar/indicators/` now properly mirrors live structure
+   - `configs/hypr/` — removed duplicate custom-screensaver-launch.sh from root (lives in scripts/)
+
+4. **Scripts Updated**
+   - `post-update` — simplified, removed dead code (backup-scripts reference), covers all custom configs
+   - `recover-customizations.sh` — rewritten to match post-update, more comprehensive
+   - `sync-configs.sh` — rewritten to use rsync, handles subdirectory structure properly
+
+5. **Documentation Refined**
+   - README completely rewritten with stock-vs-custom comparison table
+   - CHANGELOG updated with today's entry, old history preserved
+
+### Files Modified
+- `configs/waybar/style.css` — complete redesign to pill modules
+- `configs/waybar/config.jsonc` — height 26→30
+- `configs/waybar/indicators/` — all indicator scripts synced from live
+- `configs/hypr/*` — all configs synced from live
+- `configs/omarchy/*` — restructured, synced from live
+- `README.md` — complete rewrite
+- `CHANGELOG.md` — added this entry
+- `post-update` — simplified and updated
+- `recover-customizations.sh` — rewritten
+- `scripts/sync-configs.sh` — rewritten with rsync
+
+### Removed
+- `configs/alacritty/`, `configs/btop/`, `configs/fastfetch/`, `configs/ghostty/`, `configs/kitty/`, `configs/starship/`, `configs/walker/`, `configs/lazygit/` — stock omarchy defaults, not custom
+- `configs/hypr/hyprsunset.conf`, `configs/hypr/xdph.conf` — stock, not configured
+- `scripts/omarchy/` (161 files) — old upstream snapshots, not user-modified
+
 ## 2026-02-05 - Force Shutdown & System Menu Reset
 
 ### Changes Made

@@ -57,7 +57,9 @@ rsync_config "system-tweaks"
 # Sync omarchy customizations (not theme files, just custom additions)
 mkdir -p "$SOURCE_DIR/omarchy"
 cp -r "$CONFIG_DIR/omarchy/bluetooth-state.sh"    "$SOURCE_DIR/omarchy/" 2>/dev/null || true
-cp -r "$CONFIG_DIR/omarchy/power-mode"             "$SOURCE_DIR/omarchy/" 2>/dev/null || true
+cp -r "$CONFIG_DIR/omarchy/power-mode"            "$SOURCE_DIR/omarchy/" 2>/dev/null || true
+cp -r "$CONFIG_DIR/omarchy/branding"              "$SOURCE_DIR/omarchy/" 2>/dev/null || true
+cp -r "$CONFIG_DIR/omarchy/extensions"            "$SOURCE_DIR/omarchy/" 2>/dev/null || true
 
 log_success "All configurations synced!"
 echo

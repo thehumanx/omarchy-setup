@@ -29,19 +29,21 @@ All changes live in `~/.config/` and survive Omarchy updates.
 |--------|---------------|--------|
 | `config.jsonc` | left: omarchy+workspaces, right: cpu+battery | left: window title, center: 10 modules (print-status, media, weather, bluetooth, notifications, idle, voxtype), right: tray, memory, power-mode. Height 30 |
 | `style.css` | Solid background bar | Each module is a self-contained pill: semi-transparent background, 8px radius, 3px margins. Transparent bar background |
-| `indicators/` | Default set | Custom TLP power mode indicator, bluetooth state, media status |
+| `indicators/` | Default set | Custom TLP power mode indicator (needs `upower` + `bc`), bluetooth state, media status (needs `playerctl`) |
 
-### Power Management
+### Power Management (TLP)
 
 Custom 3-mode TLP control (default/powersave/performance):
-- `power-mode-toggle.sh` - cycle or set mode, manages Intel turbo boost
+- `power-mode-toggle.sh` - cycle or set mode, manages Intel turbo boost (requires `sudo` for TLP)
 - `power-mode-status.sh` - Waybar integration with icons
 - Bound to `Super+Shift+P`
+- **Dependencies:** `tlp`, `upower`, `bc`, `libnotify`
+- **Sudo:** Passwordless `sudo tlp` required — see [Prerequisites](#prerequisites)
 
 ### System Tweaks
 
 - `force-shutdown.sh` - instant shutdown, skips waiting for apps
-- Custom `logind.conf` - power button behavior
+- Custom `logind.conf` - power button behavior (copy to `/etc/systemd/logind.conf.d/`)
 
 ## Structure
 
@@ -62,6 +64,39 @@ omarchy-setup/
 ├── post-update             # Hook: restores configs after omarchy-update
 ├── recover-customizations.sh  # Manual restore (same as post-update)
 └── images/                 # Screenshots
+```
+
+## Prerequisites
+
+Install these packages before running setup:
+
+```bash
+# Power management (3-mode TLP toggle: default/powersave/performance)
+sudo pacman -S tlp upower bc
+
+# Media & notifications
+sudo pacman -S playerctl mako pamixer libnotify jq
+
+# Bluetooth
+sudo pacman -S bluez bluez-utils
+
+# Printing (status indicator)
+sudo pacman -S cups
+
+# Screensaver (Python module — note the version below)
+pip install terminaltexteffects
+```
+
+**Sudo access for TLP:** The power mode toggle (`power-mode-toggle.sh`) runs `sudo tlp`. Add a sudoers rule to avoid password prompts:
+
+```bash
+echo "$USER ALL=(ALL) NOPASSWD: /usr/bin/tlp" | sudo tee /etc/sudoers.d/tlp
+```
+
+**Python path for screensaver:** If `terminaltexteffects` is installed under a different Python version than the system default, set the path in `~/.config/hypr/scripts/custom-screensaver-launch.sh`:
+
+```bash
+export PYTHONPATH="/usr/lib/python3.13/site-packages:$PYTHONPATH"
 ```
 
 ## Setup on New System

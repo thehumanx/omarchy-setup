@@ -51,6 +51,8 @@ restore_dir "$SETUP_DIR/configs/waybar/indicators"          "$CONFIG_DIR/waybar/
 # Omarchy custom modules
 echo "== Omarchy customizations =="
 restore_dir "$SETUP_DIR/configs/omarchy/power-mode"         "$CONFIG_DIR/omarchy/power-mode"
+restore_dir "$SETUP_DIR/configs/omarchy/branding"           "$CONFIG_DIR/omarchy/branding"
+restore_dir "$SETUP_DIR/configs/omarchy/extensions"         "$CONFIG_DIR/omarchy/extensions"
 restore_config "$SETUP_DIR/configs/omarchy/bluetooth-state.sh" "$CONFIG_DIR/omarchy/bluetooth-state.sh"
 
 # System-tweaks

@@ -8,6 +8,36 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="$HOME/.config"
 
+# Dependencies check
+MISSING=""
+check_cmd() { command -v "$1" &>/dev/null || MISSING="$MISSING  $1\n"; }
+check_pkg() { pacman -Qi "$1" &>/dev/null 2>&1 || MISSING="$MISSING  $1\n"; }
+
+check_cmd tlp
+check_cmd upower
+check_cmd bc
+check_cmd playerctl
+check_cmd makoctl
+check_cmd pamixer
+check_cmd notify-send
+check_cmd jq
+check_cmd bluetoothctl
+check_cmd lpstat
+
+if [[ -n "$MISSING" ]]; then
+  echo "--- Missing dependencies ---"
+  printf "$MISSING"
+  echo "Install them with: sudo pacman -S tlp upower bc playerctl mako pamixer libnotify jq bluez bluez-utils cups"
+  echo ""
+fi
+
+# Check sudo access for tlp
+if command -v tlp &>/dev/null && ! sudo -n tlp start 2>/dev/null; then
+  echo "⚠️  Passwordless sudo for 'tlp' is recommended for power-mode toggle."
+  echo "   Add: $USER ALL=(ALL) NOPASSWD: /usr/bin/tlp"
+  echo "   To:  /etc/sudoers.d/tlp"
+fi
+
 echo "--- Installing omarchy-setup customizations ---"
 
 # Copy hypr configs
@@ -22,6 +52,8 @@ echo "  Installed: waybar/"
 mkdir -p "$CONFIG_DIR/omarchy"
 cp "$REPO_DIR/configs/omarchy/bluetooth-state.sh" "$CONFIG_DIR/omarchy/"
 cp -r "$REPO_DIR/configs/omarchy/power-mode" "$CONFIG_DIR/omarchy/"
+cp -r "$REPO_DIR/configs/omarchy/branding" "$CONFIG_DIR/omarchy/" 2>/dev/null || true
+cp -r "$REPO_DIR/configs/omarchy/extensions" "$CONFIG_DIR/omarchy/" 2>/dev/null || true
 echo "  Installed: omarchy/"
 
 # Copy system-tweaks

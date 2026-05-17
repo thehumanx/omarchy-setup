@@ -56,6 +56,13 @@ cp -r "$REPO_DIR/configs/omarchy/branding" "$CONFIG_DIR/omarchy/" 2>/dev/null ||
 cp -r "$REPO_DIR/configs/omarchy/extensions" "$CONFIG_DIR/omarchy/" 2>/dev/null || true
 echo "  Installed: omarchy/"
 
+# Copy cursor theme
+if [[ -d "$REPO_DIR/configs/icons/Afterglow-cursors" ]]; then
+  mkdir -p "$HOME/.local/share/icons"
+  cp -r "$REPO_DIR/configs/icons/Afterglow-cursors" "$HOME/.local/share/icons/"
+  echo "  Installed: icons/Afterglow-cursors"
+fi
+
 # Copy system-tweaks
 cp -r "$REPO_DIR/configs/system-tweaks" "$CONFIG_DIR/"
 echo "  Installed: system-tweaks/"

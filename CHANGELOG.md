@@ -1,5 +1,34 @@
 # Changelog - Omarchy Setup
 
+## 2026-05-17 - Afterglow Cursor Theme & Battery Fix
+
+### Changes Made
+1. **Afterglow Cursor Theme**
+   - Installed custom Afterglow cursor theme to `~/.local/share/icons/`
+   - Added `env = XCURSOR_THEME,Afterglow-cursors` to Hyprland config
+   - Cursor theme tracked in `configs/icons/` for reinstallability
+
+2. **Battery Indicator Fix**
+   - Fixed `tlp-profile.sh` using non-existent `current_now` sysfs file
+   - Switched to `power_now` (microwatts → watts) for drain rate calculation
+   - Fixes noisy errors in Waybar logs
+
+3. **Install/Recovery Scripts Updated**
+   - `install.sh` — added cursor theme install step
+   - `recover-customizations.sh` — added cursor theme restore step
+   - Both scripts now handle `icons/` directory
+
+### Files Modified
+- `configs/hypr/hyprland.conf` — added XCURSOR_THEME + XCURSOR_SIZE
+- `configs/waybar/indicators/tlp-profile.sh` — current_now → power_now
+- `install.sh` — cursor theme install
+- `recover-customizations.sh` — cursor theme restore
+- `README.md` — structure diagram + hyprland table updated
+- `CHANGELOG.md` — this entry
+
+### Files Added
+- `configs/icons/Afterglow-cursors/` — cursor theme files
+
 ## 2026-05-16 - Waybar Pill Modules & Repo Cleanup
 
 ### Changes Made

@@ -21,7 +21,7 @@ All changes live in `~/.config/` and survive Omarchy updates.
 | `monitors.conf` | No default | Scale 1.15 for 13" 2.8K display (GDK_SCALE=2) |
 | `screensaver-script.sh` | None | Custom TTE screensaver with lock on keypress |
 | `scripts/custom-screensaver-launch.sh` | None | Multi-monitor screensaver launcher, fades to lock on exit |
-| `hyprland.conf` | Sources stock looknfeel | Sources custom `~/.config/hypr/looknfeel.conf` instead |
+| `hyprland.conf` | Sources stock looknfeel | Sources custom `~/.config/hypr/looknfeel.conf` instead. Afterglow cursor theme |
 
 ### Waybar (Status Bar)
 
@@ -52,6 +52,7 @@ omarchy-setup/
 ├── configs/
 │   ├── hypr/               # Hyprland configs + scripts/
 │   ├── waybar/             # Waybar config + indicators/
+│   ├── icons/              # Afterglow cursor theme
 │   ├── omarchy/
 │   │   ├── power-mode/     # TLP toggle and status scripts
 │   │   ├── branding/       # ASCII art (about, screensaver)

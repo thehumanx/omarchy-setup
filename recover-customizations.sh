@@ -55,6 +55,10 @@ restore_dir "$SETUP_DIR/configs/omarchy/branding"           "$CONFIG_DIR/omarchy
 restore_dir "$SETUP_DIR/configs/omarchy/extensions"         "$CONFIG_DIR/omarchy/extensions"
 restore_config "$SETUP_DIR/configs/omarchy/bluetooth-state.sh" "$CONFIG_DIR/omarchy/bluetooth-state.sh"
 
+# Cursor theme
+echo "== Cursor theme =="
+restore_dir "$SETUP_DIR/configs/icons/Afterglow-cursors"        "$HOME/.local/share/icons/Afterglow-cursors"
+
 # System-tweaks
 echo "== System tweaks =="
 restore_dir "$SETUP_DIR/configs/system-tweaks"              "$CONFIG_DIR/system-tweaks"

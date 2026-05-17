@@ -50,9 +50,8 @@ get_mode_details() {
     local estimate=$(upower -i $(upower -e | grep 'BAT') | grep "time to empty" | awk -F': +' '{print $2}')
     [[ -z "$estimate" ]] && estimate="Calculating..."
 
-    local voltage=$(cat "$bat_path/voltage_now")
-    local current=$(cat "$bat_path/current_now")
-    local watts=$(echo "scale=2; ($voltage * $current) / 1000000000000" | bc -l)
+    local power=$(cat "$bat_path/power_now" 2>/dev/null || echo 0)
+    local watts=$(echo "scale=2; $power / 1000000" | bc -l)
 
     echo "Mode: $mode"
     echo "Source: $power_source"

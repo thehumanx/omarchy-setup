@@ -25,6 +25,10 @@
 
 ### Files Modified
 - `configs/hypr/looknfeel.conf` — shadow `enabled = true` → `false`
+- `configs/opencode/opencode.json` — added `opencode-mem` plugin for persistent memory
+- `scripts/sync-configs.sh` — added opencode sync
+- `post-update` — added opencode restore
+- `recover-customizations.sh` — added opencode restore
 - `README.md` — updated structure diagram, tables, setup instructions
 
 ### Files Added

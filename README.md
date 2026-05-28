@@ -73,7 +73,8 @@ omarchy-setup/
 │   │   ├── extensions/     # System menu overrides
 │   │   ├── hooks/          # Post-update restore hook
 │   │   └── bluetooth-state.sh
-│   └── system-tweaks/      # Force shutdown, logind
+│   ├── system-tweaks/      # Force shutdown, logind
+│   └── opencode/           # opencode config (memory plugin)
 ├── scripts/
 │   └── sync-configs.sh     # Sync live configs back to repo
 ├── post-update             # Hook: restores configs after omarchy-update

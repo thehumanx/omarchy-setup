@@ -63,6 +63,10 @@ restore_dir "$SETUP_DIR/configs/icons/Afterglow-cursors"        "$HOME/.local/sh
 echo "== System tweaks =="
 restore_dir "$SETUP_DIR/configs/system-tweaks"              "$CONFIG_DIR/system-tweaks"
 
+# OpenCode config
+echo "== OpenCode =="
+restore_config "$SETUP_DIR/configs/opencode/opencode.json"  "$CONFIG_DIR/opencode/opencode.json"
+
 # Make scripts executable
 chmod +x "$CONFIG_DIR/hypr/scripts/"*.sh 2>/dev/null || true
 chmod +x "$CONFIG_DIR/hypr/"*.sh 2>/dev/null || true

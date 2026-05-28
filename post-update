@@ -58,6 +58,9 @@ restore_config "$SETUP_DIR/configs/omarchy/bluetooth-state.sh" "$CONFIG_DIR/omar
 # System-tweaks
 restore_dir "$SETUP_DIR/configs/system-tweaks"              "$CONFIG_DIR/system-tweaks"
 
+# OpenCode config
+restore_config "$SETUP_DIR/configs/opencode/opencode.json"  "$CONFIG_DIR/opencode/opencode.json"
+
 # Ensure scripts are executable
 chmod +x "$CONFIG_DIR/hypr/scripts/"*.sh 2>/dev/null || true
 chmod +x "$CONFIG_DIR/hypr/"*.sh 2>/dev/null || true

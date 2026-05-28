@@ -17,7 +17,7 @@ All changes live in `~/.config/` and survive Omarchy updates.
 | `hypridle.conf` | Default timeouts | Screensaver at 2.5min, lock at 5min, improved DPMS handling |
 | `hyprlock.conf` | Theme defaults | Clock, date, battery status; fingerprint auth enabled |
 | `input.conf` | Basic touchpad | Natural scroll, 3-finger workspace swipe, 4-finger volume control, scroll_factor 1.0 |
-| `looknfeel.conf` | gaps=5/10, border=2 | Tighter gaps (2/4), border=1, resize_on_border, blur config, group settings, 20+ animation curves, dwindle/master layout |
+| `looknfeel.conf` | gaps=5/10, border=2 | Tighter gaps (2/4), border=1, resize_on_border, blur config, group settings, 20+ animation curves, dwindle/master layout. **Shadow disabled on battery** for power savings |
 | `monitors.conf` | No default | Scale 1.15 for 13" 2.8K display (GDK_SCALE=2) |
 | `screensaver-script.sh` | None | Custom TTE screensaver with lock on keypress |
 | `scripts/custom-screensaver-launch.sh` | None | Multi-monitor screensaver launcher, fades to lock on exit |
@@ -40,10 +40,22 @@ Custom 3-mode TLP control (default/powersave/performance):
 - **Dependencies:** `tlp`, `upower`, `bc`, `libnotify`
 - **Sudo:** Passwordless `sudo tlp` required — see [Prerequisites](#prerequisites)
 
+**Battery optimization config** (`configs/tlp/99-battery.conf`):
+- Caps CPU max frequency to 800MHz on battery, 400MHz on powersave
+- Limits Intel GPU to 400MHz (battery) / 200MHz (powersave)
+- Forces PCI Express ASPM to `powersupersave`
+- Sets platform profile to `low-power` on battery
+- Aggressive SATA link power management and disk APM
+- Deployed to `/etc/tlp.d/99-battery.conf` (requires `sudo`)
+
+> **FYI:** `INTEL_GPU_*` and `PLATFORM_PROFILE_ON_BAT` params are Intel-specific. TLP silently ignores unsupported options on other hardware — no errors, they just won't apply. The CPU/ASPM/disk settings work on any laptop. This config is safe for all systems.
+
 ### System Tweaks
 
 - `force-shutdown.sh` - instant shutdown, skips waiting for apps
 - Custom `logind.conf` - power button behavior (copy to `/etc/systemd/logind.conf.d/`)
+- **Sysctl battery tuning** (`configs/sysctl/99-sysctl.conf`): `vm.swappiness=10` — deployed to `/etc/sysctl.d/99-battery.conf` (requires `sudo`)
+- **THP madvise** (`configs/sysctl/transparent_hugepage.conf`): avoids compaction CPU spikes — deployed to `/etc/tmpfiles.d/transparent_hugepage.conf` (takes effect on next boot)
 
 ## Structure
 
@@ -53,6 +65,8 @@ omarchy-setup/
 │   ├── hypr/               # Hyprland configs + scripts/
 │   ├── waybar/             # Waybar config + indicators/
 │   ├── icons/              # Afterglow cursor theme
+│   ├── sysctl/             # Kernel tuning (swappiness, THP)
+│   ├── tlp/                # Battery optimization config
 │   ├── omarchy/
 │   │   ├── power-mode/     # TLP toggle and status scripts
 │   │   ├── branding/       # ASCII art (about, screensaver)
@@ -109,9 +123,23 @@ cd ~/omarchy-setup
 mkdir -p ~/.config/omarchy/hooks
 cp post-update ~/.config/omarchy/hooks/
 chmod +x ~/.config/omarchy/hooks/post-update
+
+# System-wide configs (requires sudo)
+sudo cp configs/tlp/99-battery.conf /etc/tlp.d/
+sudo cp configs/sysctl/99-sysctl.conf /etc/sysctl.d/99-battery.conf
+sudo sysctl -p /etc/sysctl.d/99-battery.conf
+sudo cp configs/sysctl/transparent_hugepage.conf /etc/tmpfiles.d/
+# Reboot or apply manually:
+echo madvise | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
+
+# Bluetooth off (persists via systemd-rfkill)
+sudo rfkill block bluetooth
+
 omarchy restart waybar
 hyprctl reload
 ```
+
+**Note:** `post-update` restores all `~/.config/` files automatically after Omarchy updates, but `/etc/` configs (TLP, sysctl) must be restored manually.
 
 ## Workflow
 

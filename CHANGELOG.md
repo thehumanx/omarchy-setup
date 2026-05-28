@@ -1,5 +1,40 @@
 # Changelog - Omarchy Setup
 
+## 2026-05-28 - Battery Optimization Configs
+
+### Changes Made
+1. **Hyprland Shadow Disabled** — turned off drop shadows in `looknfeel.conf` to reduce GPU compositing overhead on battery. Animations and blur preserved.
+
+2. **TLP Battery Config** (`configs/tlp/99-battery.conf`) — aggressive battery-saving overrides:
+   - CPU max freq capped at 800MHz (battery) / 400MHz (powersave)
+   - Intel GPU max freq capped at 400MHz (battery) / 200MHz (powersave)
+   - PCI Express ASPM forced to `powersupersave`
+   - Platform profile forced to `low-power` on battery
+   - Aggressive SATA link power and disk APM settings
+   - Deployed to `/etc/tlp.d/99-battery.conf`
+
+3. **Sysctl Battery Tuning** (`configs/sysctl/99-sysctl.conf`):
+   - `vm.swappiness=10` — reduces unnecessary swap writes on 30GB RAM system
+   - Deployed to `/etc/sysctl.d/99-battery.conf`
+
+4. **THP madvise** (`configs/sysctl/transparent_hugepage.conf`):
+   - `transparent_hugepage=madvise` — avoids compaction CPU spikes (not a sysctl, uses `tmpfiles.d`)
+   - Deployed to `/etc/tmpfiles.d/transparent_hugepage.conf`
+
+5. **Bluetooth Disabled** — `rfkill block bluetooth` persisted via systemd-rfkill
+
+### Files Modified
+- `configs/hypr/looknfeel.conf` — shadow `enabled = true` → `false`
+- `README.md` — updated structure diagram, tables, setup instructions
+
+### Files Added
+- `configs/tlp/99-battery.conf` — TLP battery optimization overrides
+- `configs/sysctl/99-sysctl.conf` — kernel tuning (swappiness)
+- `configs/sysctl/transparent_hugepage.conf` — THP madvise via tmpfiles.d
+
+### Setup Notes
+- `/etc/` configs (TLP, sysctl) require `sudo` to deploy and are NOT covered by `post-update`. See README setup instructions for manual restore steps.
+
 ## 2026-05-17 - Afterglow Cursor Theme & Battery Fix
 
 ### Changes Made

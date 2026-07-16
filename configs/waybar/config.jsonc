@@ -13,6 +13,7 @@
     "custom/net-speed",
     "pulseaudio",
     "memory",
+    "custom/battery",
     "custom/power-mode"
   ],
   "hyprland/workspaces": {
@@ -76,6 +77,11 @@
     "on-click": "/home/bbk/.config/omarchy/power-mode/power-mode-toggle.sh toggle",
     "tooltip": true
   },
+  "custom/battery": {
+    "exec": "~/.config/waybar/indicators/battery.sh",
+    "return-type": "json",
+    "tooltip": true
+  },
   "clock": {
     "format": "{:L%A %H:%M}",
     "format-alt": "{:L%d %B W%V %Y}",
@@ -113,14 +119,14 @@
     "on-click-right": "playerctl stop",
     "on-scroll-up": "playerctl next",
     "on-scroll-down": "playerctl previous",
-    "max-length": 60
+    "max-length": 30
   },
   "network": {
     "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
-    "format": "{icon}",
+    "format": "󰤮",
     "format-wifi": "{icon} {essid}",
     "format-ethernet": "󰀂",
-    "format-disconnected": "󰤮",
+    "format-disconnected": "󰤭",
     "tooltip-format-wifi": "{essid} ({frequency} GHz)",
     "tooltip-format-ethernet": "Connected",
     "tooltip-format-disconnected": "Disconnected",

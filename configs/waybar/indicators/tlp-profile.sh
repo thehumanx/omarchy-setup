@@ -65,6 +65,5 @@ get_mode_details() {
 
 ICON=$(get_power_mode)
 DETAILS=$(get_mode_details | sed ':a;N;$!ba;s/\n/\\n/g')
-BAT_CAP=$(cat /sys/class/power_supply/$(ls /sys/class/power_supply/ | grep BAT | head -1)/capacity 2>/dev/null || echo "?")
 
-echo "{\"text\": \"$ICON ${BAT_CAP}%\", \"tooltip\": \"$DETAILS\"}"
+echo "{\"text\": \"${ICON}\", \"tooltip\": \"$DETAILS\"}"

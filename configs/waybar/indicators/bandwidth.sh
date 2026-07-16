@@ -5,7 +5,7 @@
 get_bandwidth() {
     local interface=$(ip route | grep default | awk '{print $5}' | head -1)
     if [[ -z "$interface" ]]; then
-        echo "󰤭 --"
+        echo ""
         return
     fi
 

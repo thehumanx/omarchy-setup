@@ -67,6 +67,13 @@ fi
 cp -r "$REPO_DIR/configs/system-tweaks" "$CONFIG_DIR/"
 echo "  Installed: system-tweaks/"
 
+# Install systemd service for WiFi power save after wake
+if [[ -f "$REPO_DIR/configs/system-tweaks/disable-wifi-powersave-wake.service" ]]; then
+  sudo cp "$REPO_DIR/configs/system-tweaks/disable-wifi-powersave-wake.service" /etc/systemd/system/
+  sudo systemctl enable disable-wifi-powersave-wake.service
+  echo "  Installed: disable-wifi-powersave-wake.service"
+fi
+
 # Install post-update hook
 mkdir -p "$CONFIG_DIR/omarchy/hooks"
 cp "$REPO_DIR/post-update" "$CONFIG_DIR/omarchy/hooks/"

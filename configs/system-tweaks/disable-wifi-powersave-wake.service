@@ -1,0 +1,19 @@
+[Unit]
+Description=Temporarily disable WiFi power save after wake
+After=suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c '\
+  for iface in /sys/class/net/*/wireless; do \
+    iface="$(basename "$(dirname "$iface")")"; \
+    iw dev "$iface" set power_save off 2>/dev/null; \
+  done; \
+  sleep 30; \
+  for iface in /sys/class/net/*/wireless; do \
+    iface="$(basename "$(dirname "$iface")")"; \
+    iw dev "$iface" set power_save on 2>/dev/null; \
+  done'
+
+[Install]
+WantedBy=suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target

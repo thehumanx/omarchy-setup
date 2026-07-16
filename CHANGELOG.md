@@ -1,5 +1,34 @@
 # Changelog - Omarchy Setup
 
+## 2026-07-16 - Battery Indicator & Power Mode Cleanup
+
+### Changes Made
+1. **Battery Indicator Module** — Added dedicated `custom/battery` module to waybar showing real-time battery status with charging indicator. Uses polling with change detection for instant updates when plugging/unplugging charger.
+
+2. **Power Mode Simplified** — Simplified `custom/power-mode` module to show only the mode icon (󰛃/󰚥/󰾪) without battery percentage. Tooltip with detailed power info preserved on hover.
+
+### Files Added
+- `configs/waybar/indicators/battery.sh` — battery status script with real-time polling
+
+### Files Modified
+- `configs/waybar/config.jsonc` — added `custom/battery` module
+- `configs/waybar/style.css` — added battery module styling (charging=green, full=blue)
+- `configs/waybar/indicators/tlp-profile.sh` — removed battery info from text, icon only
+
+## 2026-07-15 - WiFi Power Save & Waybar Fixes
+
+### Changes Made
+1. **WiFi Power Save After Wake** — Added systemd service to temporarily disable WiFi power save after waking from hibernation/suspend, then re-enable after 30 seconds. Prevents "operation failed" error when reconnecting.
+
+2. **Waybar Duplicate WiFi Icon Fixed** — Updated `bandwidth.sh` to output empty string when no network interface is found, hiding the net-speed module instead of showing "󰤭 --" alongside the network module's disconnected icon.
+
+### Files Added
+- `configs/system-tweaks/disable-wifi-powersave-wake.service` — systemd service for WiFi wake handling
+
+### Files Modified
+- `configs/waybar/indicators/bandwidth.sh` — hide module when disconnected
+- `install.sh` — added systemd service deployment and enablement
+
 ## 2026-05-28 - Battery Optimization Configs
 
 ### Changes Made

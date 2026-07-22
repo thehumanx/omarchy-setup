@@ -1,5 +1,13 @@
 # Changelog - Omarchy Setup
 
+## 2026-07-22 - Waybar Clock Simplification
+
+### Changes Made
+1. **Simplified Clock Format** — Changed waybar clock from day+time with click-to-expand to single format: `Wed, Jul 22, 10:02`. Removed `format-alt` and `on-click-right` behavior.
+
+### Files Modified
+- `configs/waybar/config.jsonc` — updated clock format, removed alt format and click handler
+
 ## 2026-07-16 - Battery Indicator, Rounded Banners & Keybinding Fixes
 
 ### Changes Made

@@ -53,6 +53,8 @@ mkdir -p "$SOURCE_DIR"
 rsync_config "hypr"
 rsync_config "waybar"
 rsync_config "system-tweaks"
+rsync_config "swayosd"
+rsync_config "mako"
 sync_file "opencode" "opencode/opencode.json"
 
 # Sync omarchy customizations (not theme files, just custom additions)

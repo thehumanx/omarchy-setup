@@ -1,11 +1,15 @@
 # Changelog - Omarchy Setup
 
-## 2026-07-16 - Battery Indicator & Power Mode Cleanup
+## 2026-07-16 - Battery Indicator, Rounded Banners & Keybinding Fixes
 
 ### Changes Made
 1. **Battery Indicator Module** — Added dedicated `custom/battery` module to waybar showing real-time battery status with charging indicator. Uses polling with change detection for instant updates when plugging/unplugging charger.
 
 2. **Power Mode Simplified** — Simplified `custom/power-mode` module to show only the mode icon (󰛃/󰚥/󰾪) without battery percentage. Tooltip with detailed power info preserved on hover.
+
+3. **Rounded Corners for Banners** — Updated SwayOSD (volume/brightness) and Mako (notifications) to use `border-radius: 8` matching Hyprland tiling window rounding.
+
+4. **Volume Keybindings Restored** — Re-added missing XF86Audio volume/mute keybindings using `swayosd-client --output-volume`.
 
 ### Files Added
 - `configs/waybar/indicators/battery.sh` — battery status script with real-time polling
@@ -14,6 +18,9 @@
 - `configs/waybar/config.jsonc` — added `custom/battery` module
 - `configs/waybar/style.css` — added battery module styling (charging=green, full=blue)
 - `configs/waybar/indicators/tlp-profile.sh` — removed battery info from text, icon only
+- `configs/hypr/bindings.conf` — restored volume keybindings
+- `configs/swayosd/style.css` — border-radius 0 → 8
+- `configs/mako/config` — added border-radius=8
 
 ## 2026-07-15 - WiFi Power Save & Waybar Fixes
 

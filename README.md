@@ -14,7 +14,7 @@ All changes live in `~/.config/` and survive Omarchy updates.
 |--------|---------------|--------|
 | `autostart.conf` | Generic startup | Restores power mode & bluetooth state from last session |
 | `bindings.conf` | Default keybinds | Rebind: `Q`=close, `L`=system menu, `S`=screenshot, `R`=screenrecording, `Ctrl+L`=screensaver. Custom brightness with 1% precision |
-| `hypridle.conf` | Default timeouts | Screensaver at 2.5min, lock at 5min, improved DPMS handling |
+| `hypridle.conf` | Default timeouts | No auto screensaver or lock (manual only via keybind or suspend) |
 | `hyprlock.conf` | Theme defaults | Clock, date, battery status; fingerprint auth enabled |
 | `input.conf` | Basic touchpad | Natural scroll, 3-finger workspace swipe, 4-finger volume control, scroll_factor 1.0 |
 | `looknfeel.conf` | gaps=5/10, border=2 | Tighter gaps (2/4), border=1, resize_on_border, blur config, group settings, 20+ animation curves, dwindle/master layout. **Shadow disabled on battery** for power savings |

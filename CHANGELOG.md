@@ -1,5 +1,16 @@
 # Changelog - Omarchy Setup
 
+## 2026-07-30 - Idle Timer Removal & Volume Step Fix
+
+### Changes Made
+1. **Removed Screensaver & Lock Timers** — Removed 150s screensaver and 152s lock listeners from hypridle.conf. System stays awake indefinitely until manually locked or suspended.
+
+2. **Volume Step Increments** — Changed volume keybindings from default raise/lower to +5/-5 step increments for finer volume control. Added unbind directives for XF86AudioMute to prevent double-toggle (press mutes, release unmutes).
+
+### Files Modified
+- `configs/hypr/hypridle.conf` — removed both idle timeout listeners
+- `configs/hypr/bindings.conf` — volume step increments, mute unbind directives
+
 ## 2026-07-22 - Waybar Clock Simplification
 
 ### Changes Made

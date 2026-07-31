@@ -1,0 +1,75 @@
+#!/bin/bash
+# Generate the full desktop color system from a wallpaper image.
+# Covers: borders, waybar, lock screen, notifications, OSD, terminals, btop, vscode, browser, etc.
+
+set -uo pipefail
+
+WALLPAPER="$1"
+THEME_DIR="$HOME/.config/omarchy/current/theme"
+
+if [[ ! -f "$WALLPAPER" ]]; then
+  echo "File not found: $WALLPAPER" >&2
+  exit 1
+fi
+
+# Generate color files only — no-apply so aether doesn't trigger its own waybar
+# restart after we've already written dynamic.css.
+aether --generate "$WALLPAPER" --output "$THEME_DIR" --no-apply
+
+# Set wallpaper via swaybg (what aether --apply would have done)
+omarchy-theme-bg-set "$WALLPAPER"
+
+# Sync border-colors.conf from aether's accent so looknfeel.conf stays consistent
+ACCENT=$(grep -oP '(?<=^accent = ")#[0-9a-fA-F]{6}(?=")' "$THEME_DIR/colors.toml" 2>/dev/null || echo "#888888")
+HEX="${ACCENT:1}"
+R=$((16#${HEX:0:2})); G=$((16#${HEX:2:2})); B=$((16#${HEX:4:2}))
+RI=$((R * 40 / 100)); GI=$((G * 40 / 100)); BI=$((B * 40 / 100))
+cat > "$HOME/.config/hypr/border-colors.conf" <<EOF
+\$activeBorderColor = rgb($(printf "%02x%02x%02x" $R $G $B))
+\$inactiveBorderColor = rgb($(printf "%02x%02x%02x" $RI $GI $BI))
+EOF
+
+# Measure luminosity of the top 60px strip where waybar sits (more accurate than whole image).
+LUM=$(magick "$WALLPAPER" -crop x60+0+0 +repage -resize 1x1 -colorspace gray \
+  -format "%[fx:round(u.r*255)]" info:- 2>/dev/null || echo 0)
+
+# Darkened accent (40% brightness) — preserves hue for light wallpapers
+DR=$(( R * 40 / 100 )); DG=$(( G * 40 / 100 )); DB=$(( B * 40 / 100 ))
+
+# lighter_bg from colors.toml — slightly above black for dark wallpapers
+LIGHTER_BG=$(grep -oP '(?<=^lighter_bg = ")#[0-9a-fA-F]{6}(?=")' "$THEME_DIR/colors.toml" 2>/dev/null || echo "#111111")
+LBR=$((16#${LIGHTER_BG:1:2})); LBG=$((16#${LIGHTER_BG:3:2})); LBB=$((16#${LIGHTER_BG:5:2}))
+
+if (( LUM > 100 )); then
+  # Bright top: darkened accent at high opacity — keeps palette personality, ensures contrast
+  MODULE_BG="rgba(${DR},${DG},${DB},0.88)"
+elif (( LUM > 60 )); then
+  # Mid-tone top: darkened accent, slightly less opaque
+  MODULE_BG="rgba(${DR},${DG},${DB},0.72)"
+else
+  # Dark top: lighter_bg shade at solid opacity — darker than plain accent tint
+  MODULE_BG="rgba(${LBR},${LBG},${LBB},0.80)"
+fi
+
+# Write dynamic.css ONCE, then restart waybar exactly once after.
+cat > "$HOME/.config/waybar/dynamic.css" <<EOF
+@define-color accent ${ACCENT};
+@define-color module-bg ${MODULE_BG};
+EOF
+
+# Restart everything in the right order
+omarchy-restart-waybar
+omarchy-restart-swayosd
+omarchy-restart-terminal
+omarchy-restart-mako
+omarchy-restart-hyprctl
+omarchy-restart-btop || true
+
+# Apply app-specific themes
+omarchy-theme-set-foot
+omarchy-theme-set-vscode
+omarchy-theme-set-gnome
+omarchy-theme-set-browser
+omarchy-theme-set-obsidian
+
+notify-send "Theme" "Colors generated from wallpaper" -t 2000

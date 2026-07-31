@@ -61,6 +61,15 @@ restore_config "$SETUP_DIR/configs/omarchy/bluetooth-state.sh" "$CONFIG_DIR/omar
 # Helper scripts
 echo "== Helper scripts =="
 restore_config "$SETUP_DIR/configs/.local/bin/border-from-wallpaper" "$HOME/.local/bin/border-from-wallpaper"
+restore_config "$SETUP_DIR/configs/.local/bin/wallpaper-to-theme"    "$HOME/.local/bin/wallpaper-to-theme"
+
+# Wallpaper portal backend (Nautilus "Set as Background" → aether theme generation)
+echo "== Wallpaper portal =="
+restore_config "$SETUP_DIR/configs/omarchy/wallpaper-portal.py"      "$HOME/.config/omarchy/wallpaper-portal.py"
+restore_config "$SETUP_DIR/configs/.local/share/xdg-desktop-portal/portals/omarchy.portal" \
+               "$HOME/.local/share/xdg-desktop-portal/portals/omarchy.portal"
+restore_config "$SETUP_DIR/configs/xdg-desktop-portal/hyprland-portals.conf" \
+               "$HOME/.config/xdg-desktop-portal/hyprland-portals.conf"
 
 # Cursor theme
 echo "== Cursor theme =="
@@ -81,6 +90,7 @@ chmod +x "$CONFIG_DIR/omarchy/power-mode/"*.sh 2>/dev/null || true
 chmod +x "$CONFIG_DIR/omarchy/bluetooth-state.sh" 2>/dev/null || true
 chmod +x "$CONFIG_DIR/omarchy/hooks/theme-set.d/"* 2>/dev/null || true
 chmod +x "$HOME/.local/bin/border-from-wallpaper" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/wallpaper-to-theme" 2>/dev/null || true
 
 echo ""
 echo "--- Done ---"

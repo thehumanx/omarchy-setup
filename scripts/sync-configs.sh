@@ -67,13 +67,33 @@ cp -r "$CONFIG_DIR/omarchy/hooks"                 "$SOURCE_DIR/omarchy/" 2>/dev/
 
 # Sync helper scripts in ~/.local/bin
 mkdir -p "$SOURCE_DIR/.local/bin"
-for script in border-from-wallpaper; do
+for script in border-from-wallpaper wallpaper-to-theme; do
   if [[ -f "$HOME/.local/bin/$script" ]]; then
     cp "$HOME/.local/bin/$script" "$SOURCE_DIR/.local/bin/$script"
     chmod +x "$SOURCE_DIR/.local/bin/$script"
     log_success "Synced .local/bin/$script"
   fi
 done
+
+# Sync wallpaper portal backend
+if [[ -f "$HOME/.config/omarchy/wallpaper-portal.py" ]]; then
+  cp "$HOME/.config/omarchy/wallpaper-portal.py" "$SOURCE_DIR/omarchy/wallpaper-portal.py"
+  log_success "Synced omarchy/wallpaper-portal.py"
+fi
+
+# Sync xdg-desktop-portal configs (Nautilus wallpaper portal routing)
+mkdir -p "$SOURCE_DIR/.local/share/xdg-desktop-portal/portals"
+if [[ -f "$HOME/.local/share/xdg-desktop-portal/portals/omarchy.portal" ]]; then
+  cp "$HOME/.local/share/xdg-desktop-portal/portals/omarchy.portal" \
+     "$SOURCE_DIR/.local/share/xdg-desktop-portal/portals/omarchy.portal"
+  log_success "Synced xdg-desktop-portal omarchy.portal"
+fi
+mkdir -p "$SOURCE_DIR/xdg-desktop-portal"
+if [[ -f "$HOME/.config/xdg-desktop-portal/hyprland-portals.conf" ]]; then
+  cp "$HOME/.config/xdg-desktop-portal/hyprland-portals.conf" \
+     "$SOURCE_DIR/xdg-desktop-portal/hyprland-portals.conf"
+  log_success "Synced xdg-desktop-portal/hyprland-portals.conf"
+fi
 
 log_success "All configurations synced!"
 echo

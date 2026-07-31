@@ -1,5 +1,40 @@
 # Changelog - Omarchy Setup
 
+## 2026-07-31 - Wallpaper-Driven Full Theme Generation
+
+### Changes Made
+
+1. **Nautilus "Set as Background" now works on Hyprland** — Nautilus 50 uses the XDG Desktop Portal (`org.freedesktop.impl.portal.Wallpaper`) to set wallpapers. Neither `xdg-desktop-portal-hyprland` nor `xdg-desktop-portal-gtk` implements this interface, so the call silently failed. Added a minimal Python D-Bus service (`wallpaper-portal.py`) that registers as `org.freedesktop.impl.portal.desktop.omarchy`, intercepts the `SetWallpaperURI` call, and routes it to `wallpaper-to-theme`.
+
+2. **Full color system generated from wallpaper** — `wallpaper-to-theme` runs `aether --generate --no-apply` to extract a 16-color palette and write theme files directly into `~/.config/omarchy/current/theme/`. Covers: Hyprland borders, Waybar, hyprlock, mako notifications, SwayOSD (volume/brightness), all terminals, btop, VSCode, browser, Obsidian, Zed. Uses `--no-apply` so we control the restart sequence and prevent aether's async waybar restart from overwriting our `dynamic.css`.
+
+3. **Adaptive Waybar module background** — Measures the luminosity of the top 60px strip of the wallpaper (where Waybar sits) instead of the whole image. Picks a readable module pill color automatically:
+   - Bright top (LUM > 100): accent darkened to 40% brightness at 88% opacity
+   - Mid-tone top (LUM 61–100): same darkened accent at 72% opacity
+   - Dark top (LUM ≤ 60): `lighter_bg` from the palette at 80% opacity
+   Writes full `rgba()` to `dynamic.css` (not `alpha()` in CSS, which had GTK rendering issues). Waybar `style.css` now uses `@module-bg` directly.
+
+4. **`border-from-wallpaper` kept as theme-set hook** — Still runs on `omarchy theme set` to sync borders when switching named themes without changing the wallpaper.
+
+### Files Added
+- `configs/omarchy/wallpaper-portal.py` — D-Bus service implementing `org.freedesktop.impl.portal.Wallpaper`
+- `configs/.local/bin/wallpaper-to-theme` — full theme generation pipeline from a wallpaper path
+- `configs/.local/share/xdg-desktop-portal/portals/omarchy.portal` — portal backend registration
+- `configs/xdg-desktop-portal/hyprland-portals.conf` — adds `omarchy` to the portal backend list
+
+### Files Modified
+- `configs/hypr/autostart.conf` — launches `wallpaper-portal.py` on login
+- `configs/waybar/style.css` — module background uses `@module-bg` (was `alpha(@accent, 0.3)`)
+- `configs/waybar/dynamic.css` — now defines `@module-bg` in addition to `@accent`
+- `scripts/sync-configs.sh` — syncs new portal files and `wallpaper-to-theme`
+- `post-update` / `recover-customizations.sh` — restore all new files
+
+### Prerequisites
+```bash
+sudo pacman -S python-dbus python-gobject
+# aether ships with Omarchy
+```
+
 ## 2026-07-31 - Dynamic Accent Color from Wallpaper
 
 ### Changes Made

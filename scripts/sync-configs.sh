@@ -63,6 +63,17 @@ cp -r "$CONFIG_DIR/omarchy/bluetooth-state.sh"    "$SOURCE_DIR/omarchy/" 2>/dev/
 cp -r "$CONFIG_DIR/omarchy/power-mode"            "$SOURCE_DIR/omarchy/" 2>/dev/null || true
 cp -r "$CONFIG_DIR/omarchy/branding"              "$SOURCE_DIR/omarchy/" 2>/dev/null || true
 cp -r "$CONFIG_DIR/omarchy/extensions"            "$SOURCE_DIR/omarchy/" 2>/dev/null || true
+cp -r "$CONFIG_DIR/omarchy/hooks"                 "$SOURCE_DIR/omarchy/" 2>/dev/null || true
+
+# Sync helper scripts in ~/.local/bin
+mkdir -p "$SOURCE_DIR/.local/bin"
+for script in border-from-wallpaper; do
+  if [[ -f "$HOME/.local/bin/$script" ]]; then
+    cp "$HOME/.local/bin/$script" "$SOURCE_DIR/.local/bin/$script"
+    chmod +x "$SOURCE_DIR/.local/bin/$script"
+    log_success "Synced .local/bin/$script"
+  fi
+done
 
 log_success "All configurations synced!"
 echo

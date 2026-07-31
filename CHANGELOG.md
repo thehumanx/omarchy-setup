@@ -1,5 +1,26 @@
 # Changelog - Omarchy Setup
 
+## 2026-07-31 - Dynamic Accent Color from Wallpaper
+
+### Changes Made
+1. **Wallpaper-Derived Border Colors** — Window borders now take their color from the current wallpaper. `border-from-wallpaper` extracts the average color and writes `~/.config/hypr/border-colors.conf`, which `looknfeel.conf` sources. Falls back to the theme accent for grayscale/very dark wallpapers, boosts to minimum visibility, dims to 40% for the inactive border.
+
+2. **Waybar Accent Backgrounds** — Waybar module pills now use the same wallpaper color as their background via `~/.config/waybar/dynamic.css` (`@accent`), replacing the old semi-transparent black.
+
+3. **Theme-Set Hook** — Runs `border-from-wallpaper` automatically on every `omarchy theme set`.
+
+### Files Added
+- `configs/hypr/border-colors.conf` — generated border colors sourced by `looknfeel.conf`
+- `configs/waybar/dynamic.css` — generated `@accent` color used by Waybar modules
+- `configs/omarchy/hooks/theme-set.d/border-from-wallpaper` — auto-runs on theme change
+- `configs/.local/bin/border-from-wallpaper` — color extraction script (also synced by `sync-configs.sh`)
+
+### Files Modified
+- `configs/hypr/looknfeel.conf` — border colors sourced from `border-colors.conf` instead of hardcoded
+- `configs/waybar/style.css` — module backgrounds use `alpha(@accent, ...)`, imports `dynamic.css`
+- `scripts/sync-configs.sh` — syncs `omarchy/hooks` and `~/.local/bin/border-from-wallpaper`
+- `post-update` / `recover-customizations.sh` — restore the new border/waybar/hook/script files
+
 ## 2026-07-30 - Idle Timer Removal & Volume Step Fix
 
 ### Changes Made

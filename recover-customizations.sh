@@ -40,12 +40,14 @@ restore_config "$SETUP_DIR/configs/hypr/hyprlock.conf"      "$CONFIG_DIR/hypr/hy
 restore_config "$SETUP_DIR/configs/hypr/input.conf"         "$CONFIG_DIR/hypr/input.conf"
 restore_config "$SETUP_DIR/configs/hypr/looknfeel.conf"     "$CONFIG_DIR/hypr/looknfeel.conf"
 restore_config "$SETUP_DIR/configs/hypr/monitors.conf"      "$CONFIG_DIR/hypr/monitors.conf"
+restore_config "$SETUP_DIR/configs/hypr/border-colors.conf" "$CONFIG_DIR/hypr/border-colors.conf"
 restore_dir  "$SETUP_DIR/configs/hypr/scripts"              "$CONFIG_DIR/hypr/scripts"
 
 # Waybar
 echo "== Waybar =="
 restore_config "$SETUP_DIR/configs/waybar/config.jsonc"     "$CONFIG_DIR/waybar/config.jsonc"
 restore_config "$SETUP_DIR/configs/waybar/style.css"        "$CONFIG_DIR/waybar/style.css"
+restore_config "$SETUP_DIR/configs/waybar/dynamic.css"      "$CONFIG_DIR/waybar/dynamic.css"
 restore_dir "$SETUP_DIR/configs/waybar/indicators"          "$CONFIG_DIR/waybar/indicators"
 
 # Omarchy custom modules
@@ -53,7 +55,12 @@ echo "== Omarchy customizations =="
 restore_dir "$SETUP_DIR/configs/omarchy/power-mode"         "$CONFIG_DIR/omarchy/power-mode"
 restore_dir "$SETUP_DIR/configs/omarchy/branding"           "$CONFIG_DIR/omarchy/branding"
 restore_dir "$SETUP_DIR/configs/omarchy/extensions"         "$CONFIG_DIR/omarchy/extensions"
+restore_dir "$SETUP_DIR/configs/omarchy/hooks"              "$CONFIG_DIR/omarchy/hooks"
 restore_config "$SETUP_DIR/configs/omarchy/bluetooth-state.sh" "$CONFIG_DIR/omarchy/bluetooth-state.sh"
+
+# Helper scripts
+echo "== Helper scripts =="
+restore_config "$SETUP_DIR/configs/.local/bin/border-from-wallpaper" "$HOME/.local/bin/border-from-wallpaper"
 
 # Cursor theme
 echo "== Cursor theme =="
@@ -72,6 +79,8 @@ chmod +x "$CONFIG_DIR/hypr/scripts/"*.sh 2>/dev/null || true
 chmod +x "$CONFIG_DIR/hypr/"*.sh 2>/dev/null || true
 chmod +x "$CONFIG_DIR/omarchy/power-mode/"*.sh 2>/dev/null || true
 chmod +x "$CONFIG_DIR/omarchy/bluetooth-state.sh" 2>/dev/null || true
+chmod +x "$CONFIG_DIR/omarchy/hooks/theme-set.d/"* 2>/dev/null || true
+chmod +x "$HOME/.local/bin/border-from-wallpaper" 2>/dev/null || true
 
 echo ""
 echo "--- Done ---"

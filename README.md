@@ -61,6 +61,15 @@ TLP is tuned with aggressive power saving defaults: PCI Express ASPM `powersuper
 
 Kernel-level tuning too: `vm.swappiness=10` (less swap thrashing on 30GB RAM) and `transparent_hugepage=madvise` to kill random CPU spikes.
 
+#### Known gaps / planned improvements
+
+| # | What | Why it matters | Notes |
+|---|------|----------------|-------|
+| 1 | **WiFi power save is off on battery** | ~0.5–1W wasted when WiFi is idle | `iw dev wlan0 get power_save` returns `off`. TLP default enables it (`WIFI_PWR_ON_BAT=on`) but the wake-from-suspend WiFi fix script overrides it. Fix: add `WIFI_PWR_ON_BAT=on` to `99-battery.conf` and audit `system-tweaks` to not permanently disable power save. |
+| 2 | **Battery conservation mode disabled** | Long-term capacity loss | `ideapad_laptop` driver exposes `/sys/devices/.../VPC2004:00/conservation_mode` (currently `0`). Enabling it caps charge at ~60%, preventing degradation while plugged in. 413 cycles already. TLP charge threshold sysfs nodes not present on this kernel; use conservation_mode directly or a systemd unit. |
+| 3 | **CPU min frequency not pinned** | Marginal idle waste | `CPU_SCALING_MIN_FREQ_ON_BAT/SAV=400000` not set. `intel_pstate` defaults to `min_perf_pct=8%` which is fine, but explicitly setting the floor prevents the scheduler from briefly ramping idle cores. |
+| 4 | **`s2idle` suspend instead of `deep` (S3)** | 1–3W draw during lid-closed suspend | `/sys/power/mem_sleep` shows only `[s2idle]` (Intel modern standby). `deep` S3 would drop to ~0.3W. Check BIOS → Power → Sleep State for S3 option — many Lenovo Slim BIOSes have it disabled by default. If enabled, set `MEM_SLEEP_ON_BAT=deep`. Tradeoff: slightly slower wake. |
+
 ---
 
 ### ✋ Touchpad that gets out of your way

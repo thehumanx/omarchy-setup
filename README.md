@@ -108,11 +108,14 @@ Custom TTE screensaver (`Ctrl+Super+S`) fades into the lock screen on exit rathe
 |---------|--------|
 | `Super+Q` | Close window |
 | `Super+L` | System menu (lock/shutdown/reboot) |
-| `Super+S` | Screenshot |
-| `Super+R` | Screen recording |
-| `Ctrl+L` | Lock screen |
-| `Ctrl+Super+S` | Screensaver |
+| `Super+E` | File manager |
+| `Super+;` | Emoji picker |
+| `Super+Shift+S` | Screenshot |
+| `Super+Shift+R` | Screen recording |
 | `Super+Shift+P` | Cycle power mode |
+| `Super+Shift+B` | Browser |
+| `Super+Shift+M` | Music (Spotify) |
+| `Super+Shift+N` | Editor |
 | Brightness keys | 1% precision steps |
 | Volume keys | 5% steps via SwayOSD |
 
@@ -138,7 +141,7 @@ Custom TTE screensaver (`Ctrl+Super+S`) fades into the lock screen on exit rathe
 | Config | Stock Omarchy | This setup |
 |--------|---------------|------------|
 | `autostart.conf` | Generic startup | Restores power mode + bluetooth state; starts wallpaper portal |
-| `bindings.conf` | Default keybinds | Q=close, L=menu, S=screenshot, R=recording, Ctrl+L=lock, 1% brightness, 5% volume |
+| `bindings.conf` | Default keybinds | Q=close, L=menu, E=files, ;=emoji, Shift+S=screenshot, Shift+R=recording, Shift+P=power mode, 1% brightness, 5% volume |
 | `hypridle.conf` | Auto-screensaver + lock timers | No auto timers — manual lock only |
 | `hyprlock.conf` | Theme defaults | Clock, date, battery; fingerprint auth |
 | `input.conf` | Basic touchpad | Natural scroll, 3-finger workspace, 4-finger volume |

@@ -1,5 +1,42 @@
 # Changelog - Omarchy Setup
 
+## 2026-08-04 - Android-Style Screen-On Time Tracking
+
+### Changes Made
+
+1. **True Screen-On Time (SOT) in Waybar** — The TLP power-mode tooltip previously showed "time since last script run," not actual screen-on time. It now tracks only time the display is actively on — identical to how Android reports SOT — by listening to Hyprland's IPC socket for `dpms` events. Screen-off time (idle blanking, suspend, hibernate) is excluded automatically since hypridle turns the display off before sleep, which fires the dpms-off event that pauses the counter.
+
+2. **SOT daemon (`sot-daemon`)** — A persistent bash daemon runs as a systemd user service. It:
+   - Connects to Hyprland's `.socket2.sock` and listens for `dpms>>` events
+   - Banks elapsed time on screen-off, resumes the clock on screen-on
+   - Reads `/var/lib/upower/history-charge-<model>.dat` to get the accurate unplug timestamp (not just "when waybar started")
+   - Polls battery status every 30 s to reset the counter when the charger reconnects
+   - Persists state to `~/.local/state/omarchy/sot.state` so waybar restarts don't reset it
+   - Reconnects automatically if the socket drops (e.g. after hibernate)
+
+3. **Waybar `tlp-profile.sh` updated** — Removed the old inline SOT calculation (which used `/tmp/waybar_sot_start_time` and never subtracted sleep time). Now reads from the daemon's state file via a `get_sot_text()` function. Tooltip label changed from "Current SOT" to "Screen-On Time".
+
+### Files Added
+- `configs/local-bin/sot-daemon` — SOT tracker daemon script
+- `configs/systemd/user/sot-daemon.service` — systemd user service unit
+
+### Files Modified
+- `configs/waybar/indicators/tlp-profile.sh` — reads SOT from daemon state file
+
+### Setup Notes
+```bash
+# Install daemon script
+cp configs/local-bin/sot-daemon ~/.local/bin/sot-daemon
+chmod +x ~/.local/bin/sot-daemon
+
+# Install and start the service
+cp configs/systemd/user/sot-daemon.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now sot-daemon.service
+```
+
+---
+
 ## 2026-07-31 - Wallpaper-Driven Full Theme Generation
 
 ### Changes Made

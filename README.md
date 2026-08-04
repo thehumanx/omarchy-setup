@@ -97,7 +97,7 @@ Stock Omarchy's bar is minimal. This one carries its weight:
 - **Bluetooth** — live on/off state with toggle
 - **Notification counter** — unread count with Mako integration  
 - **Net speed** — live upload/download in the tray area
-- **Power mode indicator** — icon changes with the active TLP mode
+- **Power mode indicator** — icon changes with the active TLP mode; tooltip shows actual screen-on time since last unplug (excludes sleep/idle, like Android SOT)
 - **Battery** — percentage + charging state, color-coded (charging=green, full=blue)
 - **Each module is a floating pill** — semi-transparent, 8px radius, wallpaper-aware background color
 
@@ -166,7 +166,7 @@ Custom TTE screensaver (`Ctrl+Super+S`) fades into the lock screen on exit rathe
 | `config.jsonc` | omarchy icon + workspaces, cpu + battery | Window title, 10 center modules, tray + memory + power-mode + battery |
 | `style.css` | Solid bar background | Transparent bar, floating pills per module, wallpaper-aware background |
 | `dynamic.css` | None | Generated per wallpaper: `@accent`, `@module-bg` |
-| `indicators/` | Minimal | TLP power mode, bluetooth state, media (playerctl), battery |
+| `indicators/` | Minimal | TLP power mode (with Android-style SOT), bluetooth state, media (playerctl), battery |
 
 ### System
 
@@ -199,6 +199,8 @@ omarchy-setup/
 │   │   ├── wallpaper-portal.py   # D-Bus service: Nautilus → wallpaper-to-theme
 │   │   └── bluetooth-state.sh
 │   ├── system-tweaks/      # force-shutdown.sh, logind.conf
+│   ├── systemd/user/       # Custom user services (sot-daemon.service)
+│   ├── local-bin/          # Custom user scripts (sot-daemon)
 │   ├── opencode/           # opencode config (memory plugin)
 │   └── .local/
 │       ├── bin/            # border-from-wallpaper, wallpaper-to-theme
@@ -288,6 +290,14 @@ cp -r configs/icons/Afterglow-cursors ~/.local/share/icons/
 
 # Generate theme from current wallpaper
 wallpaper-to-theme "$(readlink -f ~/.config/omarchy/current/background)"
+
+# SOT daemon (screen-on time tracker)
+mkdir -p ~/.local/bin ~/.config/systemd/user
+cp configs/local-bin/sot-daemon ~/.local/bin/sot-daemon
+chmod +x ~/.local/bin/sot-daemon
+cp configs/systemd/user/sot-daemon.service ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now sot-daemon.service
 
 hyprctl reload
 omarchy restart waybar

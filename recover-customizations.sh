@@ -62,6 +62,11 @@ restore_config "$SETUP_DIR/configs/omarchy/bluetooth-state.sh" "$CONFIG_DIR/omar
 echo "== Helper scripts =="
 restore_config "$SETUP_DIR/configs/.local/bin/border-from-wallpaper" "$HOME/.local/bin/border-from-wallpaper"
 restore_config "$SETUP_DIR/configs/.local/bin/wallpaper-to-theme"    "$HOME/.local/bin/wallpaper-to-theme"
+restore_config "$SETUP_DIR/configs/local-bin/sot-daemon"             "$HOME/.local/bin/sot-daemon"
+
+# Systemd user services
+echo "== Systemd user services =="
+restore_config "$SETUP_DIR/configs/systemd/user/sot-daemon.service"  "$HOME/.config/systemd/user/sot-daemon.service"
 
 # Wallpaper portal backend (Nautilus "Set as Background" → aether theme generation)
 echo "== Wallpaper portal =="
@@ -91,6 +96,13 @@ chmod +x "$CONFIG_DIR/omarchy/bluetooth-state.sh" 2>/dev/null || true
 chmod +x "$CONFIG_DIR/omarchy/hooks/theme-set.d/"* 2>/dev/null || true
 chmod +x "$HOME/.local/bin/border-from-wallpaper" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/wallpaper-to-theme" 2>/dev/null || true
+chmod +x "$HOME/.local/bin/sot-daemon" 2>/dev/null || true
+
+# Reload and restart sot-daemon if systemd is available
+if command -v systemctl &>/dev/null; then
+    systemctl --user daemon-reload 2>/dev/null || true
+    systemctl --user enable --now sot-daemon.service 2>/dev/null || true
+fi
 
 echo ""
 echo "--- Done ---"

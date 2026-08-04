@@ -19,6 +19,29 @@ get_power_mode() {
     esac
 }
 
+get_sot_text() {
+    local state_file="$HOME/.local/state/omarchy/sot.state"
+    [[ ! -f "$state_file" ]] && { echo "--"; return; }
+
+    local unplug accum screen_since
+    read -r unplug accum screen_since < "$state_file"
+
+    if [[ $unplug -eq 0 ]]; then
+        echo "Charging"
+        return
+    fi
+
+    local now total
+    now=$(date +%s)
+    total=$accum
+    [[ $screen_since -gt 0 ]] && total=$((accum + now - screen_since))
+
+    local hours mins
+    hours=$((total / 3600))
+    mins=$(((total % 3600) / 60))
+    echo "${hours}h ${mins}m"
+}
+
 get_mode_details() {
     local mode
     if [[ -f "$POWER_MODE_FILE" ]]; then
@@ -28,24 +51,15 @@ get_mode_details() {
     fi
     local bat_path=$(find /sys/class/power_supply/ -name "BAT*" | head -n 1)
     local status=$(cat "$bat_path/status" 2>/dev/null)
-    local sot_state_file="/tmp/waybar_sot_start_time"
-    local now=$(date +%s)
 
     if [[ "$status" == "Discharging" ]]; then
-        if [[ ! -f "$sot_state_file" ]]; then
-            echo "$now" > "$sot_state_file"
-        fi
-        local start_time=$(cat "$sot_state_file")
-        local diff=$((now - start_time))
-        local hours=$((diff / 3600))
-        local mins=$(((diff % 3600) / 60))
-        local sot_text="${hours}h ${mins}m"
         local power_source="Battery Power"
     else
-        rm -f "$sot_state_file" 2>/dev/null
-        local sot_text="Charging/Full"
         local power_source="AC Power"
     fi
+
+    local sot_text
+    sot_text=$(get_sot_text)
 
     local estimate=$(upower -i $(upower -e | grep 'BAT') | grep "time to empty" | awk -F': +' '{print $2}')
     [[ -z "$estimate" ]] && estimate="Calculating..."
@@ -56,7 +70,7 @@ get_mode_details() {
     echo "Mode: $mode"
     echo "Source: $power_source"
     echo "----------------------"
-    echo "Current SOT: $sot_text"
+    echo "Screen-On Time: $sot_text"
     echo "Remaining: $estimate"
     echo "Drain Rate: ${watts}W"
     echo "----------------------"

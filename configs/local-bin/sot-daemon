@@ -1,0 +1,128 @@
+#!/bin/bash
+# Tracks actual screen-on time since last charger unplug.
+# State file: $HOME/.local/state/omarchy/sot.state
+# Format: <unplug_ts> <accumulated_seconds> <screen_on_since>
+#   unplug_ts      = 0 while charging; unix ts of last unplug otherwise
+#   accumulated    = total screen-on seconds banked when screen went off
+#   screen_on_since = 0 if screen is currently off; unix ts it turned on otherwise
+
+STATE_FILE="$HOME/.local/state/omarchy/sot.state"
+mkdir -p "$(dirname "$STATE_FILE")"
+
+BAT_PATH=$(find /sys/class/power_supply -maxdepth 1 -name "BAT*" | head -1)
+BAT_MODEL=$(cat "$BAT_PATH/model_name" 2>/dev/null)
+UPOWER_HIST=$(find /var/lib/upower -name "history-charge-${BAT_MODEL}*.dat" 2>/dev/null | head -1)
+
+get_bat_status() {
+    cat "$BAT_PATH/status" 2>/dev/null
+}
+
+read_state() {
+    if [[ -f "$STATE_FILE" ]]; then
+        read -r _unplug _accum _screen_since < "$STATE_FILE"
+    else
+        _unplug=0; _accum=0; _screen_since=0
+    fi
+}
+
+write_state() {
+    printf '%s %s %s\n' "$1" "$2" "$3" > "${STATE_FILE}.tmp"
+    mv "${STATE_FILE}.tmp" "$STATE_FILE"
+}
+
+get_last_unplug_ts() {
+    [[ -f "$UPOWER_HIST" ]] || { echo 0; return; }
+    awk '
+        prev != "" && prev != "discharging" && $3 == "discharging" { last = $1 }
+        { prev = $3 }
+        END { print last + 0 }
+    ' "$UPOWER_HIST"
+}
+
+on_screen_off() {
+    local now=$1
+    read_state
+    local new_accum=$_accum
+    [[ $_screen_since -gt 0 ]] && new_accum=$((_accum + now - _screen_since))
+    write_state "$_unplug" "$new_accum" 0
+}
+
+on_screen_on() {
+    local now=$1
+    read_state
+    [[ $_screen_since -eq 0 ]] && write_state "$_unplug" "$_accum" "$now"
+}
+
+init_discharge() {
+    local now=$1
+    local last_unplug
+    last_unplug=$(get_last_unplug_ts)
+    [[ $last_unplug -eq 0 ]] && last_unplug=$now
+    write_state "$last_unplug" 0 "$now"
+}
+
+on_connect() {
+    local now=$1
+    local bat_status
+    bat_status=$(get_bat_status)
+    read_state
+
+    if [[ "$bat_status" != "Discharging" ]]; then
+        write_state 0 0 0
+        return
+    fi
+
+    if [[ $_unplug -eq 0 ]]; then
+        init_discharge "$now"
+        return
+    fi
+
+    # Reconnecting after socat drop — assume screen is on if it was off
+    [[ $_screen_since -eq 0 ]] && write_state "$_unplug" "$_accum" "$now"
+}
+
+# Background poller: reset state when charger reconnects between dpms events
+battery_poller() {
+    while true; do
+        sleep 30
+        local bat_status
+        bat_status=$(get_bat_status)
+        if [[ "$bat_status" != "Discharging" ]]; then
+            read_state
+            [[ $_unplug -ne 0 ]] && write_state 0 0 0
+        elif [[ "$bat_status" == "Discharging" ]]; then
+            read_state
+            if [[ $_unplug -eq 0 ]]; then
+                init_discharge "$(date +%s)"
+            fi
+        fi
+    done
+}
+
+battery_poller &
+POLLER_PID=$!
+trap 'kill $POLLER_PID 2>/dev/null' EXIT
+
+# Main event loop — reconnects if socat drops (e.g. after hibernate)
+while true; do
+    HYPR_SOCKET=$(find "$XDG_RUNTIME_DIR/hypr" -name ".socket2.sock" 2>/dev/null | head -1)
+
+    if [[ -z "$HYPR_SOCKET" || ! -S "$HYPR_SOCKET" ]]; then
+        sleep 5
+        continue
+    fi
+
+    on_connect "$(date +%s)"
+
+    socat - "UNIX-CONNECT:${HYPR_SOCKET}" 2>/dev/null | while IFS= read -r event; do
+        now=$(date +%s)
+        case "$event" in
+            dpms\>\>*,0*)         on_screen_off "$now" ;;
+            dpms\>\>*,1*)         on_screen_on  "$now" ;;
+            monitorstate\>\>*,0*) on_screen_off "$now" ;;
+            monitorstate\>\>*,1*) on_screen_on  "$now" ;;
+        esac
+    done
+
+    sleep 5
+done

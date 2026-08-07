@@ -67,7 +67,7 @@ cp -r "$CONFIG_DIR/omarchy/hooks"                 "$SOURCE_DIR/omarchy/" 2>/dev/
 
 # Sync omarchy bin overrides from ~/.local/share/omarchy/bin
 mkdir -p "$SOURCE_DIR/omarchy/bin"
-for script in omarchy-launch-webapp omarchy-brightness-display; do
+for script in omarchy-launch-webapp omarchy-brightness-display omarchy-capture-screenshot; do
   if [[ -f "$HOME/.local/share/omarchy/bin/$script" ]]; then
     cp "$HOME/.local/share/omarchy/bin/$script" "$SOURCE_DIR/omarchy/bin/$script"
     chmod +x "$SOURCE_DIR/omarchy/bin/$script"

@@ -1,5 +1,18 @@
 # Changelog - Omarchy Setup
 
+## 2026-08-07 - Screenshot Notification Fix
+
+### Changes Made
+
+1. **Screenshot notification — click to edit, right-click to dismiss** — The `✕` in the mako format string was decorative text, not a button. Clicking it (or anywhere on the notification) triggered the default action (open satty editor) rather than dismissing. Removed the misleading `✕` from the format and updated the notification body to say "Click to edit · right-click to dismiss" so the behavior is self-documenting.
+
+### Files Modified
+- `configs/mako/config` — removed `✕` from format string
+- `configs/omarchy/bin/omarchy-capture-screenshot` — updated notification body text; now tracked in sync
+- `scripts/sync-configs.sh` — added `omarchy-capture-screenshot` to the bin sync list
+
+---
+
 ## 2026-08-07 - SOT Daemon Rewrite, Webapp Launcher Fix, Mako Improvements
 
 ### Changes Made

@@ -105,7 +105,7 @@ Stock Omarchy's bar is minimal. This one carries its weight:
 
 ### 🔔 Notifications that look right
 
-Mako notifications match the window border radius (8px rounded corners) and include a `✕` dismiss indicator in the title. Right-click any notification to dismiss it instantly. Colors (border, background) are wallpaper-derived like everything else.
+Mako notifications match the window border radius (8px rounded corners). Click to act on a notification (e.g. open screenshot in editor), right-click to dismiss instantly. Colors (border, background) are wallpaper-derived like everything else.
 
 ---
 
@@ -186,7 +186,7 @@ Custom TTE screensaver (`Ctrl+Super+S`) fades into the lock screen on exit rathe
 | Power profiles | None | 3-mode with Waybar indicator + keybind |
 | Shutdown | Standard systemd | + force-kill option for hangs |
 | Cursor | Default | Afterglow dark theme |
-| Notifications | Default mako | Rounded corners (8px), ✕ dismiss icon, right-click to dismiss |
+| Notifications | Default mako | Rounded corners (8px), click to act, right-click to dismiss |
 | SOT tracking | None | Event-driven daemon via named pipe; instant, zero polling overhead |
 | Sleep hook | None | Banks screen time before suspend, resumes after wake |
 

@@ -62,7 +62,12 @@ restore_config "$SETUP_DIR/configs/omarchy/bluetooth-state.sh" "$CONFIG_DIR/omar
 echo "== Helper scripts =="
 restore_config "$SETUP_DIR/configs/.local/bin/border-from-wallpaper" "$HOME/.local/bin/border-from-wallpaper"
 restore_config "$SETUP_DIR/configs/.local/bin/wallpaper-to-theme"    "$HOME/.local/bin/wallpaper-to-theme"
-restore_config "$SETUP_DIR/configs/local-bin/sot-daemon"             "$HOME/.local/bin/sot-daemon"
+restore_config "$SETUP_DIR/configs/.local/bin/sot-daemon"            "$HOME/.local/bin/sot-daemon"
+
+# Omarchy bin overrides (survive omarchy update via post-update hook)
+echo "== Omarchy bin overrides =="
+restore_config "$SETUP_DIR/configs/omarchy/bin/omarchy-launch-webapp"       "$HOME/.local/share/omarchy/bin/omarchy-launch-webapp"
+restore_config "$SETUP_DIR/configs/omarchy/bin/omarchy-brightness-display"  "$HOME/.local/share/omarchy/bin/omarchy-brightness-display"
 
 # Systemd user services
 echo "== Systemd user services =="
@@ -88,6 +93,14 @@ restore_dir "$SETUP_DIR/configs/system-tweaks"              "$CONFIG_DIR/system-
 echo "== OpenCode =="
 restore_config "$SETUP_DIR/configs/opencode/opencode.json"  "$CONFIG_DIR/opencode/opencode.json"
 
+# System-level sleep hook (requires sudo)
+echo "== System sleep hook =="
+if [[ -f "$SETUP_DIR/configs/system-sleep/sot-hook.sh" ]]; then
+  echo "  NOTE: sot-hook.sh requires sudo to install:"
+  echo "  sudo cp $SETUP_DIR/configs/system-sleep/sot-hook.sh /etc/systemd/system-sleep/"
+  echo "  sudo chmod +x /etc/systemd/system-sleep/sot-hook.sh"
+fi
+
 # Make scripts executable
 chmod +x "$CONFIG_DIR/hypr/scripts/"*.sh 2>/dev/null || true
 chmod +x "$CONFIG_DIR/hypr/"*.sh 2>/dev/null || true
@@ -97,6 +110,8 @@ chmod +x "$CONFIG_DIR/omarchy/hooks/theme-set.d/"* 2>/dev/null || true
 chmod +x "$HOME/.local/bin/border-from-wallpaper" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/wallpaper-to-theme" 2>/dev/null || true
 chmod +x "$HOME/.local/bin/sot-daemon" 2>/dev/null || true
+chmod +x "$HOME/.local/share/omarchy/bin/omarchy-launch-webapp" 2>/dev/null || true
+chmod +x "$HOME/.local/share/omarchy/bin/omarchy-brightness-display" 2>/dev/null || true
 
 # Reload and restart sot-daemon if systemd is available
 if command -v systemctl &>/dev/null; then

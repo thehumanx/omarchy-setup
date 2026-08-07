@@ -103,6 +103,12 @@ Stock Omarchy's bar is minimal. This one carries its weight:
 
 ---
 
+### 🔔 Notifications that look right
+
+Mako notifications match the window border radius (8px rounded corners) and include a `✕` dismiss indicator in the title. Right-click any notification to dismiss it instantly. Colors (border, background) are wallpaper-derived like everything else.
+
+---
+
 ### 🔒 Lock screen worth looking at
 
 Clock, date, and battery percentage displayed. Fingerprint authentication works out of the box. Screen never auto-locks mid-video — locking is always intentional (`Ctrl+L`).
@@ -140,6 +146,7 @@ Custom TTE screensaver (`Ctrl+Super+S`) fades into the lock screen on exit rathe
 - **Force shutdown** — instant kill when a normal shutdown hangs (bound in the system menu)
 - **WiFi power save fix** — re-enables WiFi properly after waking from suspend (no more "operation failed")
 - **`resize_on_border`** — drag any window edge to resize, not just the title bar
+- **Web apps open in Vivaldi** — `omarchy-launch-webapp` falls back to Vivaldi (not missing Chromium) for Google Photos, Maps, Messages, WhatsApp, Figma
 
 ---
 
@@ -149,6 +156,8 @@ Custom TTE screensaver (`Ctrl+Super+S`) fades into the lock screen on exit rathe
 
 | Config | Stock Omarchy | This setup |
 |--------|---------------|------------|
+| `omarchy-launch-webapp` | Falls back to chromium | Falls back to vivaldi-stable (chromium not installed) |
+| `omarchy-brightness-display` | Dispatches dpms off/on | Same + signals SOT daemon pipe |
 | `autostart.conf` | Generic startup | Restores power mode + bluetooth state; starts wallpaper portal |
 | `bindings.conf` | Default keybinds | Q=close, L=menu, E=files, ;=emoji, Shift+S=screenshot, Shift+R=recording, Shift+P=power mode, 1% brightness, 5% volume |
 | `hypridle.conf` | Auto-screensaver + lock timers | No auto timers — manual lock only |
@@ -177,6 +186,9 @@ Custom TTE screensaver (`Ctrl+Super+S`) fades into the lock screen on exit rathe
 | Power profiles | None | 3-mode with Waybar indicator + keybind |
 | Shutdown | Standard systemd | + force-kill option for hangs |
 | Cursor | Default | Afterglow dark theme |
+| Notifications | Default mako | Rounded corners (8px), ✕ dismiss icon, right-click to dismiss |
+| SOT tracking | None | Event-driven daemon via named pipe; instant, zero polling overhead |
+| Sleep hook | None | Banks screen time before suspend, resumes after wake |
 
 ---
 
@@ -192,6 +204,7 @@ omarchy-setup/
 │   ├── tlp/                # Battery optimization overrides
 │   ├── xdg-desktop-portal/ # Portal routing (adds omarchy wallpaper backend)
 │   ├── omarchy/
+│   │   ├── bin/            # Omarchy bin overrides (webapp launcher, brightness-display)
 │   │   ├── power-mode/     # TLP toggle + Waybar status script
 │   │   ├── branding/       # ASCII art (about, screensaver text)
 │   │   ├── extensions/     # System menu overrides (force shutdown)
@@ -199,11 +212,11 @@ omarchy-setup/
 │   │   ├── wallpaper-portal.py   # D-Bus service: Nautilus → wallpaper-to-theme
 │   │   └── bluetooth-state.sh
 │   ├── system-tweaks/      # force-shutdown.sh, logind.conf
+│   ├── system-sleep/       # sot-hook.sh (sudo install: /etc/systemd/system-sleep/)
 │   ├── systemd/user/       # Custom user services (sot-daemon.service)
-│   ├── local-bin/          # Custom user scripts (sot-daemon)
 │   ├── opencode/           # opencode config (memory plugin)
 │   └── .local/
-│       ├── bin/            # border-from-wallpaper, wallpaper-to-theme
+│       ├── bin/            # border-from-wallpaper, wallpaper-to-theme, sot-daemon
 │       └── share/xdg-desktop-portal/portals/  # omarchy.portal registration
 ├── scripts/
 │   └── sync-configs.sh     # Pull live configs back into repo
@@ -293,11 +306,21 @@ wallpaper-to-theme "$(readlink -f ~/.config/omarchy/current/background)"
 
 # SOT daemon (screen-on time tracker)
 mkdir -p ~/.local/bin ~/.config/systemd/user
-cp configs/local-bin/sot-daemon ~/.local/bin/sot-daemon
+cp configs/.local/bin/sot-daemon ~/.local/bin/sot-daemon
 chmod +x ~/.local/bin/sot-daemon
 cp configs/systemd/user/sot-daemon.service ~/.config/systemd/user/
 systemctl --user daemon-reload
 systemctl --user enable --now sot-daemon.service
+
+# Omarchy bin overrides (webapp launcher + SOT brightness hook)
+cp configs/omarchy/bin/omarchy-launch-webapp ~/.local/share/omarchy/bin/
+cp configs/omarchy/bin/omarchy-brightness-display ~/.local/share/omarchy/bin/
+chmod +x ~/.local/share/omarchy/bin/omarchy-launch-webapp
+chmod +x ~/.local/share/omarchy/bin/omarchy-brightness-display
+
+# SOT sleep hook (signals daemon before sleep / after wake)
+sudo cp configs/system-sleep/sot-hook.sh /etc/systemd/system-sleep/
+sudo chmod +x /etc/systemd/system-sleep/sot-hook.sh
 
 hyprctl reload
 omarchy restart waybar

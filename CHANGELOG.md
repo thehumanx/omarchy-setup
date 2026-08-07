@@ -1,5 +1,58 @@
 # Changelog - Omarchy Setup
 
+## 2026-08-07 - SOT Daemon Rewrite, Webapp Launcher Fix, Mako Improvements
+
+### Changes Made
+
+1. **SOT Daemon — Fully Event-Driven (no polling)** — The previous daemon polled `hyprctl monitors -j` every 5 seconds to detect screen state. Root cause found: `hyprctl dispatch dpms off/on` (used by `omarchy-brightness-display`) emits no events on Hyprland's socket2, so the original IPC listener was also deaf. New architecture:
+   - `sot-daemon` blocks on a named pipe (`~/.local/state/omarchy/sot.pipe`) waiting for events
+   - `omarchy-brightness-display` signals `screen-off`/`screen-on` to the pipe after each dpms dispatch
+   - A new systemd sleep hook (`/etc/systemd/system-sleep/sot-hook.sh`) signals `sleep` before suspend and `screen-on` after wake
+   - Battery state polled via `read -t 10` timeout (sysfs file read only, no process spawning)
+   - Single `hyprctl` call on daemon startup only to detect initial screen state
+   - SIGTERM trap banks in-progress screen time on daemon stop/restart
+
+2. **System impact comparison:**
+   | | Old (polling) | New (event-driven) |
+   |---|---|---|
+   | CPU | ~0.2% (hyprctl every 5s) | ~0% (blocks on pipe) |
+   | Process spawns | 720/hour | only on screen events |
+   | Latency | 0–5s lag | instant |
+
+3. **Webapp Launcher — Vivaldi Fallback** — `omarchy-launch-webapp` fell back to `chromium.desktop` when the default browser wasn't Chromium-based (e.g. Zen). Chromium is not installed. Changed fallback to `vivaldi-stable.desktop` so all installed web apps (Google Photos, Maps, Messages, Contacts, WhatsApp, Figma) open correctly.
+
+4. **Mako Notifications** — Added `border-radius=8` (matches Hyprland window rounding) and a `✕` dismiss icon in the format string using the border accent color. Right-click on any notification dismisses it.
+
+### Files Added
+- `configs/omarchy/bin/omarchy-launch-webapp` — vivaldi fallback fix
+- `configs/omarchy/bin/omarchy-brightness-display` — signals SOT pipe on dpms changes
+- `configs/system-sleep/sot-hook.sh` — systemd sleep/wake hook (requires sudo to install)
+
+### Files Modified
+- `configs/.local/bin/sot-daemon` — fully rewritten; event-driven via named pipe
+- `configs/mako/config` — border-radius=8, format with ✕, on-button-right=dismiss
+- `scripts/sync-configs.sh` — added omarchy/bin/, system-sleep/ to sync targets
+
+### Setup Notes
+```bash
+# Install omarchy bin overrides
+cp configs/omarchy/bin/omarchy-launch-webapp ~/.local/share/omarchy/bin/
+cp configs/omarchy/bin/omarchy-brightness-display ~/.local/share/omarchy/bin/
+chmod +x ~/.local/share/omarchy/bin/omarchy-launch-webapp
+chmod +x ~/.local/share/omarchy/bin/omarchy-brightness-display
+
+# Install SOT daemon
+cp configs/.local/bin/sot-daemon ~/.local/bin/sot-daemon
+chmod +x ~/.local/bin/sot-daemon
+systemctl --user restart sot-daemon
+
+# Install sleep hook (requires sudo)
+sudo cp configs/system-sleep/sot-hook.sh /etc/systemd/system-sleep/
+sudo chmod +x /etc/systemd/system-sleep/sot-hook.sh
+```
+
+---
+
 ## 2026-08-04 - Android-Style Screen-On Time Tracking
 
 ### Changes Made

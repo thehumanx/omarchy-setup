@@ -65,9 +65,19 @@ cp -r "$CONFIG_DIR/omarchy/branding"              "$SOURCE_DIR/omarchy/" 2>/dev/
 cp -r "$CONFIG_DIR/omarchy/extensions"            "$SOURCE_DIR/omarchy/" 2>/dev/null || true
 cp -r "$CONFIG_DIR/omarchy/hooks"                 "$SOURCE_DIR/omarchy/" 2>/dev/null || true
 
+# Sync omarchy bin overrides from ~/.local/share/omarchy/bin
+mkdir -p "$SOURCE_DIR/omarchy/bin"
+for script in omarchy-launch-webapp omarchy-brightness-display; do
+  if [[ -f "$HOME/.local/share/omarchy/bin/$script" ]]; then
+    cp "$HOME/.local/share/omarchy/bin/$script" "$SOURCE_DIR/omarchy/bin/$script"
+    chmod +x "$SOURCE_DIR/omarchy/bin/$script"
+    log_success "Synced omarchy/bin/$script"
+  fi
+done
+
 # Sync helper scripts in ~/.local/bin
 mkdir -p "$SOURCE_DIR/.local/bin"
-for script in border-from-wallpaper wallpaper-to-theme; do
+for script in border-from-wallpaper wallpaper-to-theme sot-daemon; do
   if [[ -f "$HOME/.local/bin/$script" ]]; then
     cp "$HOME/.local/bin/$script" "$SOURCE_DIR/.local/bin/$script"
     chmod +x "$SOURCE_DIR/.local/bin/$script"
@@ -95,6 +105,15 @@ if [[ -f "$HOME/.config/xdg-desktop-portal/hyprland-portals.conf" ]]; then
   log_success "Synced xdg-desktop-portal/hyprland-portals.conf"
 fi
 
+# Sync system-level sleep hook (read-only copy; install requires sudo)
+mkdir -p "$SOURCE_DIR/system-sleep"
+if [[ -f "/etc/systemd/system-sleep/sot-hook.sh" ]]; then
+  cp "/etc/systemd/system-sleep/sot-hook.sh" "$SOURCE_DIR/system-sleep/sot-hook.sh"
+  log_success "Synced system-sleep/sot-hook.sh"
+fi
+
 log_success "All configurations synced!"
+echo
+log_warning "NOTE: system-sleep/sot-hook.sh must be installed manually: sudo cp configs/system-sleep/sot-hook.sh /etc/systemd/system-sleep/ && sudo chmod +x /etc/systemd/system-sleep/sot-hook.sh"
 echo
 echo "Next: cd ~/omarchy-setup && git add -A && git commit -m 'Update configs' && git push"

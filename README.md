@@ -87,6 +87,17 @@ differently from `bar-widget`/`panel` kinds — cloning `omarchy.bar` itself
 `Required property ... was not initialized`. That's why the box styling is
 duplicated per-widget instead of centralized.
 
+### Cursor theme
+
+Afterglow cursor (`configs/icons/Afterglow-cursors`), installed to
+`~/.local/share/icons/`. Activated three ways so it actually sticks:
+`gsettings set org.gnome.desktop.interface cursor-theme "Afterglow-cursors"`
+(GTK apps), `hyprctl setcursor Afterglow-cursors 24` (live, current session),
+and `XCURSOR_THEME`/`HYPRCURSOR_THEME`/`XCURSOR_SIZE`/`HYPRCURSOR_SIZE` env
+vars in `hypr/looknfeel.lua` (persists across restarts — Hyprland has no
+default `XCURSOR_THEME`, it falls through to GTK/whatever's on disk
+otherwise). `recover-customizations.sh` runs all three.
+
 ### Setup on a new Omarchy 4 machine
 
 ```bash

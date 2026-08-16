@@ -86,6 +86,13 @@ restore_config "$SETUP_DIR/configs/systemd/user/sot-daemon.service"  "$HOME/.con
 # Cursor theme
 echo "== Cursor theme =="
 restore_dir "$SETUP_DIR/configs/icons/Afterglow-cursors"        "$HOME/.local/share/icons/Afterglow-cursors"
+if command -v gsettings &>/dev/null; then
+  gsettings set org.gnome.desktop.interface cursor-theme "Afterglow-cursors" 2>/dev/null || true
+  gsettings set org.gnome.desktop.interface cursor-size 24 2>/dev/null || true
+fi
+if command -v hyprctl &>/dev/null; then
+  hyprctl setcursor "Afterglow-cursors" 24 2>/dev/null || true
+fi
 
 # System-tweaks
 echo "== System tweaks =="

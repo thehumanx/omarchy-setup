@@ -1,5 +1,41 @@
 # Changelog - Omarchy Setup
 
+## 2026-08-16 (later still) - Activate Afterglow cursor theme on Omarchy 4
+
+The cursor theme files were already on disk (`~/.local/share/icons/Afterglow-cursors`,
+carried over from the pre-4 install) but never activated — Hyprland has no
+default `XCURSOR_THEME`, so it was silently falling back to the system
+default cursor.
+
+### Changes Made
+
+1. Activated via three mechanisms so it actually persists: `gsettings set
+   org.gnome.desktop.interface cursor-theme "Afterglow-cursors"` (GTK apps),
+   `hyprctl setcursor Afterglow-cursors 24` (immediate, current session), and
+   `XCURSOR_THEME`/`HYPRCURSOR_THEME`/`XCURSOR_SIZE`/`HYPRCURSOR_SIZE` env
+   vars added to `hypr/looknfeel.lua` (persists across Hyprland restarts).
+2. `sync-configs.sh` now syncs `~/.local/share/icons/Afterglow-cursors` into
+   `configs/icons/` (previously never synced automatically).
+3. `recover-customizations.sh` and `restore-customizations.hook` both now
+   restore the cursor theme dir and re-run all three activation steps.
+4. **Repeated the exact same mistake from the previous entry** — edited
+   `looknfeel.lua` live, then ran the post-update hook as a test *before*
+   syncing the edit to the repo, so the hook correctly flagged the drift and
+   then "won" with the stale repo copy, wiping the new env vars out again.
+   Caught it the same way (drift warning + `journalctl`/config check), fixed
+   it, and this time synced to the repo *before* testing the hook again.
+   Noting this explicitly as a process lesson: **always sync live→repo
+   before test-running a restore hook**, since "repo wins" is the hook's
+   entire point.
+
+### Files Modified
+- `hypr/looknfeel.lua` — cursor env vars
+- `scripts/sync-configs.sh` — cursor theme sync
+- `recover-customizations.sh`, `restore-customizations.hook` (+ installed `post-update.d/` copy) — restore + activate cursor theme
+- `README.md` — new "Cursor theme" subsection under Omarchy 4 (current)
+
+---
+
 ## 2026-08-16 (later) - Fix broken post-update automation, drop TLP/battery tuning
 
 A follow-up audit found the "Omarchy 4 Migration" entry below never actually

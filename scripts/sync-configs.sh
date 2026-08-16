@@ -111,6 +111,14 @@ if [[ -d "$HOME/.config/omarchy/plugins" ]]; then
   log_success "Synced omarchy/plugins"
 fi
 
+# Sync cursor theme
+if [[ -d "$HOME/.local/share/icons/Afterglow-cursors" ]]; then
+  log_info "Syncing cursor theme..."
+  mkdir -p "$SOURCE_DIR/icons"
+  rsync -a --delete "$HOME/.local/share/icons/Afterglow-cursors/" "$SOURCE_DIR/icons/Afterglow-cursors/"
+  log_success "Synced icons/Afterglow-cursors"
+fi
+
 # Sync xdg-desktop-portal configs (Nautilus wallpaper portal routing)
 mkdir -p "$SOURCE_DIR/.local/share/xdg-desktop-portal/portals"
 if [[ -f "$HOME/.local/share/xdg-desktop-portal/portals/omarchy.portal" ]]; then

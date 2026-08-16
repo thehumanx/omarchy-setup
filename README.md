@@ -13,7 +13,27 @@
 
 ## Why this exists
 
-Stock Omarchy is already great. This setup makes it *feel like yours* — wallpaper-aware colors everywhere, smarter battery life, better gestures, a status bar that actually earns its screen real estate, and a few quality-of-life fixes that remove friction from daily use.
+Stock Omarchy is already great — this isn't a case for replacing it, just for
+tuning the handful of things that don't match how I actually use it:
+
+- **I don't use themes.** Not Omarchy's built-in ones, not anyone else's. I
+  change my wallpaper on a whim and want the whole system — bar, lock screen,
+  terminal, everything — to just derive its colors from *that*, automatically,
+  every time. That's what the wallpaper → theme pipeline is for: right-click
+  an image, set it as background, done.
+- **The stock lock screen isn't my taste.** Nothing wrong with it, it's just
+  not what I want looking at me every time I unlock my laptop, so I rebuilt
+  the layout (see the screenshot above).
+- **The bar deserved a *little* ricing.** Not a redesign — same widgets,
+  same layout mostly — just boxed pills with sane padding/gaps instead of
+  bare icons floating on a transparent strip.
+- **The cursor is purely subjective** — there's no reason to stick with the
+  default when there are nicer ones out there. Afterglow is just the one I
+  liked.
+
+None of this is "Omarchy is missing something." It's "here's what *my*
+Omarchy looks like," kept in a repo so it survives updates and reinstalls
+instead of living only in my head.
 
 Every change lives in `~/.config/` and **survives `omarchy update`** via a post-update hook.
 
@@ -97,6 +117,32 @@ and `XCURSOR_THEME`/`HYPRCURSOR_THEME`/`XCURSOR_SIZE`/`HYPRCURSOR_SIZE` env
 vars in `hypr/looknfeel.lua` (persists across restarts — Hyprland has no
 default `XCURSOR_THEME`, it falls through to GTK/whatever's on disk
 otherwise). `recover-customizations.sh` runs all three.
+
+### Idle / screensaver
+
+Auto screensaver and auto-lock are **disabled entirely** — video (YouTube,
+etc.) kept tripping the idle timeout even at normal (non-fullscreen) window
+size, and `idle_inhibit` window rules only cover fullscreen. Simplest fix:
+turn the whole idle cycle off via Omarchy's built-in toggle —
+
+```bash
+omarchy-shell idle disable   # persists to ~/.local/state/omarchy/indicators/stay-awake
+omarchy-shell idle enable    # turn auto screensaver/lock back on
+omarchy-shell idle status    # check current state
+```
+
+Manual lock (`Super+Ctrl+L`) is unaffected either way. The fullscreen
+`idle_inhibit` rules below are harmless leftovers in case auto-lock ever
+gets re-enabled — Steam/Moonlight/GeForce Now/browsers/mpv won't trip it
+while fullscreen, same pattern Omarchy's own defaults already use for
+games:
+
+```lua
+-- ~/.config/hypr/hyprland.lua
+o.window({ tag = "chromium-based-browser" }, { idle_inhibit = "fullscreen" })
+o.window({ tag = "firefox-based-browser" }, { idle_inhibit = "fullscreen" })
+o.window("^(mpv)$", { idle_inhibit = "fullscreen" })
+```
 
 ### Setup on a new Omarchy 4 machine
 

@@ -27,3 +27,12 @@ require("default.hypr.toggles")
 
 -- Add any other personal Hyprland configuration below.
 -- o.window("qemu", { workspace = "5" })
+
+-- Don't lock/screensaver while watching fullscreen video (YouTube, Netflix,
+-- etc. in the browser, or a local video in mpv). Matches the same pattern
+-- Omarchy's own defaults use for Steam/Moonlight/GeForce Now. Only inhibits
+-- while the window is actually fullscreen, so normal browsing still locks
+-- on idle as usual.
+o.window({ tag = "chromium-based-browser" }, { idle_inhibit = "fullscreen" })
+o.window({ tag = "firefox-based-browser" }, { idle_inhibit = "fullscreen" })
+o.window("^(mpv)$", { idle_inhibit = "fullscreen" })

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
 xdg-desktop-portal backend for org.freedesktop.impl.portal.Wallpaper.
-Routes Nautilus "Set as Background" calls to omarchy theme bg set.
+Routes Nautilus "Set as Background" calls to wallpaper-to-theme, which sets
+the background and regenerates the color theme from it.
 """
 
+import os
 import subprocess
 import urllib.parse
 import dbus
@@ -14,6 +16,7 @@ from gi.repository import GLib
 BUS_NAME = "org.freedesktop.impl.portal.desktop.omarchy"
 OBJECT_PATH = "/org/freedesktop/portal/desktop"
 IFACE = "org.freedesktop.impl.portal.Wallpaper"
+WALLPAPER_TO_THEME = os.path.expanduser("~/.config/omarchy/wallpaper-to-theme")
 
 
 class WallpaperPortal(dbus.service.Object):
@@ -29,7 +32,7 @@ class WallpaperPortal(dbus.service.Object):
         parsed = urllib.parse.urlparse(str(uri))
         path = urllib.parse.unquote(parsed.path)
         try:
-            subprocess.Popen(["wallpaper-to-theme", path])
+            subprocess.Popen([WALLPAPER_TO_THEME, path])
             return dbus.UInt32(0)  # success
         except Exception as e:
             print(f"wallpaper-portal error: {e}")

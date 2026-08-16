@@ -26,7 +26,7 @@ rsync_config() {
     log_info "Syncing $app_name..."
     rm -rf "$dst"
     mkdir -p "$dst"
-    rsync -a --exclude='.git' --exclude='*.bak.*' --exclude='cache' --exclude='__pycache__' "$src/" "$dst/"
+    rsync -a --exclude='.git' --exclude='*.bak.*' --exclude='*.bak' --exclude='cache' --exclude='__pycache__' "$src/" "$dst/"
     log_success "Synced $app_name"
   else
     log_warning "$app_name not found, skipping"
@@ -60,7 +60,6 @@ sync_file "opencode" "opencode/opencode.json"
 # Sync omarchy customizations (not theme files, just custom additions)
 mkdir -p "$SOURCE_DIR/omarchy"
 cp -r "$CONFIG_DIR/omarchy/bluetooth-state.sh"    "$SOURCE_DIR/omarchy/" 2>/dev/null || true
-cp -r "$CONFIG_DIR/omarchy/power-mode"            "$SOURCE_DIR/omarchy/" 2>/dev/null || true
 cp -r "$CONFIG_DIR/omarchy/branding"              "$SOURCE_DIR/omarchy/" 2>/dev/null || true
 cp -r "$CONFIG_DIR/omarchy/extensions"            "$SOURCE_DIR/omarchy/" 2>/dev/null || true
 cp -r "$CONFIG_DIR/omarchy/hooks"                 "$SOURCE_DIR/omarchy/" 2>/dev/null || true
@@ -85,10 +84,31 @@ for script in border-from-wallpaper wallpaper-to-theme sot-daemon; do
   fi
 done
 
-# Sync wallpaper portal backend
+# Sync wallpaper portal backend + theme generator (Omarchy 4)
 if [[ -f "$HOME/.config/omarchy/wallpaper-portal.py" ]]; then
   cp "$HOME/.config/omarchy/wallpaper-portal.py" "$SOURCE_DIR/omarchy/wallpaper-portal.py"
   log_success "Synced omarchy/wallpaper-portal.py"
+fi
+if [[ -f "$HOME/.config/omarchy/wallpaper-to-theme" ]]; then
+  cp "$HOME/.config/omarchy/wallpaper-to-theme" "$SOURCE_DIR/omarchy/wallpaper-to-theme"
+  chmod +x "$SOURCE_DIR/omarchy/wallpaper-to-theme"
+  log_success "Synced omarchy/wallpaper-to-theme"
+fi
+
+# Sync Omarchy 4 bar layout, style tokens, and custom shell plugins
+for f in shell.json shell.toml; do
+  if [[ -f "$HOME/.config/omarchy/$f" ]]; then
+    cp "$HOME/.config/omarchy/$f" "$SOURCE_DIR/omarchy/$f"
+    log_success "Synced omarchy/$f"
+  fi
+done
+if [[ -d "$HOME/.config/omarchy/plugins" ]]; then
+  log_info "Syncing omarchy/plugins (bbk.* custom widgets)..."
+  mkdir -p "$SOURCE_DIR/omarchy/plugins"
+  # Exclude dotfile-prefixed dirs — `omarchy plugin remove` drops rollback
+  # backups there (.bbk.<name>.bak.<timestamp>), not real config.
+  rsync -a --delete --exclude='.*' "$HOME/.config/omarchy/plugins/" "$SOURCE_DIR/omarchy/plugins/"
+  log_success "Synced omarchy/plugins"
 fi
 
 # Sync xdg-desktop-portal configs (Nautilus wallpaper portal routing)

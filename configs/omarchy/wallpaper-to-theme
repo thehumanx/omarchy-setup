@@ -1,0 +1,29 @@
+#!/bin/bash
+# Generate a color theme from a wallpaper and apply it as a dedicated,
+# self-contained Omarchy theme ("from-wallpaper"). Never touches any other
+# theme; only this theme's own directory is created/overwritten.
+
+set -uo pipefail
+
+WALLPAPER="$1"
+THEME_NAME="from-wallpaper"
+THEME_DIR="$HOME/.config/omarchy/themes/$THEME_NAME"
+
+if [[ ! -f "$WALLPAPER" ]]; then
+  echo "File not found: $WALLPAPER" >&2
+  exit 1
+fi
+
+rm -rf "$THEME_DIR"
+mkdir -p "$THEME_DIR"
+
+# --no-apply: only render the theme files, don't let aether touch any
+# app configs directly. --no-zed/--no-vscode/--no-neovim: skip aether's own
+# per-editor integrations since `omarchy theme set` already syncs supported
+# editors through Omarchy's own commands, and running both would double-write
+# conflicting config files.
+aether --generate "$WALLPAPER" --output "$THEME_DIR" --no-apply --no-zed --no-vscode --no-neovim
+
+omarchy theme set "$THEME_NAME"
+
+notify-send "Theme" "Colors generated from wallpaper" -t 2000

@@ -1,5 +1,133 @@
 # Changelog - Omarchy Setup
 
+## 2026-08-16 (later) - Fix broken post-update automation, drop TLP/battery tuning
+
+A follow-up audit found the "Omarchy 4 Migration" entry below never actually
+wired the new configs into the restore automation — the post-update hook and
+recovery script both still only handled the dead pre-4 files, and worse, the
+installed hook was **disabled** (`post-update.disabled`) since the Omarchy 4
+upgrade migration, so it hadn't been running at all.
+
+### Changes Made
+
+1. **TLP/battery tuning removed** — not in use right now. Deleted
+   `configs/tlp/`, `configs/sysctl/`, `configs/omarchy/power-mode/`, and the
+   two TLP-related waybar indicator scripts. Will be re-added fresh in a
+   future version if needed rather than restored from this history.
+2. **Post-update hook rewritten and properly installed** — moved from a
+   single `~/.config/omarchy/hooks/post-update` file (the old, pre-4 hook
+   mechanism — Omarchy 4 uses a `post-update.d/` directory of individual
+   hook scripts instead) to `restore-customizations.hook`, installed via
+   `omarchy hook install post-update <file>`. Now restores the real Omarchy 4
+   config: `bindings.lua`/`input.lua`/`looknfeel.lua`/`autostart.lua`,
+   `shell.json`, `shell.toml`, and the entire `plugins/bbk.*` tree. Dropped
+   the dead pre-4 restores (`bindings.conf`, `hyprlock.conf`,
+   `waybar/config.jsonc`, etc.) entirely rather than leaving them as
+   pointless no-ops.
+3. **Drift detection added** — every `restore_config`/`restore_tree` call now
+   diffs the live file against the repo copy *before* overwriting, and prints
+   a `⚠ DRIFT` warning (with a suggested `diff` command) if they differ. This
+   directly addresses "what if an Omarchy update changes waybar/lock-screen
+   configs" — instead of silently clobbering an upstream change, the hook
+   flags it so it can be reviewed and folded into the repo by hand.
+   Live-tested: correctly caught a since-resynced widget edit and stale
+   leftover backup directories from an earlier failed experiment.
+4. **`recover-customizations.sh` rewritten** to match — same Omarchy 4 file
+   set as the hook, dead pre-4 restores removed, and it now installs the
+   post-update hook itself via `omarchy-hook-install` at the end instead of
+   requiring a manual copy.
+5. **`sync-configs.sh` updated** — drops the power-mode sync, excludes
+   dotfile-prefixed rollback-backup directories under `plugins/`
+   (`.bbk.<name>.bak.<timestamp>`, created by `omarchy plugin remove`) so
+   they can't leak into the repo again, and tightened the `*.bak` exclude
+   pattern to also catch backup files without a numeric suffix.
+6. **Verified live**: ran the installed hook end-to-end (`bash
+   ~/.config/omarchy/hooks/post-update.d/restore-customizations.hook`) —
+   correctly flagged real drift on the first run, zero drift on the second
+   after resyncing, and `hyprctl reload`/`omarchy restart shell` both came
+   back clean afterward.
+
+### Files Removed
+- `configs/tlp/`, `configs/sysctl/`, `configs/omarchy/power-mode/`
+- `configs/waybar/indicators/tlp-profile.sh`, `tlp-toggle.sh`
+- `post-update` (root) → renamed `restore-customizations.hook`
+- `configs/omarchy/hooks/post-update` → moved to `configs/omarchy/hooks/post-update.d/restore-customizations.hook`
+
+### Files Modified
+- `restore-customizations.hook` (formerly `post-update`) — full rewrite: Omarchy 4 restores + drift detection
+- `recover-customizations.sh` — full rewrite: Omarchy 4 restores, installs the hook itself
+- `scripts/sync-configs.sh` — drop power-mode, exclude plugin rollback-backup dirs, tighten `.bak` exclude
+- `README.md` — battery section removed, install/setup instructions point at `recover-customizations.sh`, drift-flagging documented
+
+---
+
+## 2026-08-16 - Omarchy 4 Migration (Lua/Quickshell rewrite)
+
+Omarchy 4 replaced waybar, hyprlock, and the old `.conf`-based Hyprland config
+with a Lua-configured Hyprland and a Quickshell-based shell. This is a from-scratch
+recreation of the old customizations on the new architecture, not a port — most of
+the old scripts (waybar CSS, aether/waybar pipeline, hyprlock.conf DSL) have no
+equivalent anymore and were left as legacy/historical reference.
+
+### Changes Made
+
+1. **Keybindings** (`hypr/bindings.lua`) — restored old muscle-memory bindings on
+   the new Lua binding API: `Q`=close, `L`=system menu/`Shift+L`=layout toggle,
+   `E`=file manager, `;`=emoji picker (new built-in picker, not walker),
+   `Shift+S`/`Shift+R`=screenshot/recording, unbound ~15 unused preinstalled
+   app/webapp shortcuts. Added `Ctrl+Shift+S`=capture menu and swapped
+   `Super+Space`⇄`Super+Alt+Space` (apps menu / omarchy menu) per new preference.
+2. **Touchpad** (`hypr/input.lua`) — 3-finger horizontal swipe to switch
+   workspaces, natural scroll. (4-finger volume swipe and custom brightness floor
+   from the old config were deliberately dropped.)
+3. **Tiling look** (`hypr/looknfeel.lua`) — gaps 2/4, border 1px, rounded corners,
+   `resize_on_border` + larger grab area. Border colors left theme-tied instead of
+   hardcoded (new system ties them to the active theme already).
+4. **Lock screen** (`omarchy/plugins/bbk.lock/LockView.qml`) — cloned the stock
+   Quickshell lock service (`service`-kind plugin) and restyled only the visual
+   layer: time/date/battery centered on screen, password field hidden until
+   typed, borderless, fully rounded, smaller. `Service.qml` (PAM/session-lock
+   logic) untouched. Verified safe by checking `journalctl --user -t
+   omarchy-shell` after each change — the lock service loads (`keepLoaded:
+   true`) at shell startup regardless of whether it's actively locked, so load
+   errors show up without needing to trigger a real lock.
+5. **Wallpaper portal + theme generation** — recreated `wallpaper-portal.py`
+   (D-Bus `org.freedesktop.impl.portal.Wallpaper` backend) pointing at a new
+   `wallpaper-to-theme` script. Unlike the old version (which wrote into the live
+   theme directory and drove a waybar/aether pipeline), the new script generates
+   a dedicated `from-wallpaper` theme via `aether --generate --no-apply` and
+   applies it with `omarchy theme set` — fully isolated, never mutates another
+   theme, uses Omarchy's own theme-activation path.
+6. **Custom bar** (`omarchy/plugins/bbk.*`, `omarchy/shell.json`,
+   `omarchy/shell.toml`) — cloned every stock bar widget individually
+   (workspaces, clock, weather, keyboard-layout, system-update, tray, agents,
+   monitor, power, bluetooth, network, audio; added a new memory widget) and gave
+   each its own rounded, theme-colored box — solid `Color.bar.background`/
+   `Color.bar.text` instead of a wallpaper-sampled tint, since the bar is
+   transparent and tint contrast varied across the wallpaper. Iterated padding/
+   gap/font-size/corner-radius to match. Bumped the actual bar height via
+   `shell.toml`'s `[bar] size-horizontal` (the real fix — a `[font] base-size`
+   override was silently shrinking it via `scale-with-font`). Made bluetooth/wifi/
+   volume labels clickable, not just their icons.
+7. **Known dead end** — cloning the top-level `omarchy.bar` plugin (`bar` kind) to
+   add a *shared* per-widget box wrapper crashed with `Required property ... was
+   not initialized`; that plugin kind doesn't get its startup properties
+   forwarded the way `bar-widget`/`panel`/`service` kinds do. Worked around by
+   duplicating the box styling into each widget file instead.
+
+### Files Added
+- `hypr/bindings.lua`, `hypr/input.lua`, `hypr/looknfeel.lua`, `hypr/autostart.lua`
+- `omarchy/shell.json`, `omarchy/shell.toml`
+- `omarchy/wallpaper-to-theme` (new location/rewrite; old one at `.local/bin/wallpaper-to-theme` is now dead)
+- `omarchy/plugins/bbk.*/` — all custom shell plugin clones
+
+### Files Modified
+- `omarchy/wallpaper-portal.py` — now calls `wallpaper-to-theme` instead of the removed `omarchy-theme-bg-set`-only flow
+- `scripts/sync-configs.sh` — added sync for `shell.json`, `shell.toml`, `plugins/`, and the new `wallpaper-to-theme` location
+- `README.md` — added an "Omarchy 4 (current)" section; existing waybar/hyprlock content moved under "Legacy (pre-Omarchy-4)"
+
+---
+
 ## 2026-08-07 - Screenshot Notification Fix
 
 ### Changes Made

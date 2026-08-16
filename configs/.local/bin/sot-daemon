@@ -66,10 +66,11 @@ check_battery() {
     if [[ "$bat_status" != "Discharging" ]]; then
         [[ $_unplug -ne 0 ]] && write_state 0 0 0
     elif [[ $_unplug -eq 0 ]]; then
-        local last_unplug
+        local last_unplug screen_on_since=0
         last_unplug=$(get_last_unplug_ts)
         [[ $last_unplug -eq 0 ]] && last_unplug=$now
-        write_state "$last_unplug" 0 0
+        hyprctl monitors -j 2>/dev/null | grep -q '"dpmsStatus": true' && screen_on_since=$now
+        write_state "$last_unplug" 0 "$screen_on_since"
     fi
 }
 

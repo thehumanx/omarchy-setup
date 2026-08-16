@@ -3,11 +3,11 @@
 > A curated layer of customizations on top of [Omarchy Linux](https://omarchy.org/) by DHH —
 > daily-driving Arch + Hyprland without the rough edges.
 
-![Desktop](images/desktop-main.png)
+![Desktop](images/cover.png)
 
-| ![Desktop dark](images/desktop-dark.png) | ![Lock screen](images/lockscreen.png) |
-|:---:|:---:|
-| Northern lights wallpaper → full color system | Lock screen: clock, date, battery, fingerprint |
+| ![Lock screen](images/lockscreen-preview.png) |
+|:---:|
+| Lock screen: time, date, battery — centered, password field hidden until typed |
 
 ---
 
@@ -18,6 +18,111 @@ Stock Omarchy is already great. This setup makes it *feel like yours* — wallpa
 Every change lives in `~/.config/` and **survives `omarchy update`** via a post-update hook.
 
 ---
+
+## Omarchy 4 (current)
+
+Omarchy 4 rewrote the whole shell in Lua/Quickshell — waybar, hyprlock, and mako are
+gone, replaced by a built-in Quickshell bar, lock screen, and notification system.
+Everything below this section targets **that** architecture. The "Legacy" sections
+further down describe the pre-4 (waybar/hyprlock) setup and are kept only as
+historical reference — most of it no longer applies.
+
+### Keybindings & input (`configs/hypr/*.lua`)
+
+- `bindings.lua` — personal overrides on top of Omarchy's Lua defaults: `Q`=close,
+  `L`=system menu / `Shift+L`=workspace layout toggle, `E`=file manager,
+  `;`=emoji picker, `Shift+S`/`Shift+R`=screenshot/recording, `Ctrl+Shift+S`=capture
+  menu, `Super+Space`⇄`Super+Alt+Space` swapped (apps menu / omarchy menu), and a
+  long list of unused preinstalled app/webapp shortcuts (Docker, Signal, ChatGPT,
+  etc.) unbound.
+- `input.lua` — natural scroll + 3-finger horizontal swipe to switch workspaces.
+- `looknfeel.lua` — gaps 2/4, border 1px, rounded corners, `resize_on_border`,
+  easier border-drag grab area. Border colors stay theme-tied (not hardcoded).
+- `autostart.lua` — launches the wallpaper portal backend (see below).
+
+### Wallpaper → theme pipeline
+
+Nautilus "Set as Background" still has no native portal backend in Omarchy 4— same
+gap as before, fixed the same way:
+
+- `omarchy/wallpaper-portal.py` — a D-Bus service implementing
+  `org.freedesktop.impl.portal.Wallpaper`, registered via
+  `.local/share/xdg-desktop-portal/portals/omarchy.portal`. Routes
+  `SetWallpaperURI` calls to `wallpaper-to-theme`. Autostarted from
+  `hypr/autostart.lua`.
+- `omarchy/wallpaper-to-theme` — generates a dedicated, self-contained Omarchy
+  theme (`from-wallpaper`) via `aether --generate --no-apply` into its own theme
+  directory, then applies it with `omarchy theme set`. Never mutates any other
+  theme; regenerating on every wallpaper change just recreates this one theme.
+  (The old version wrote directly into `~/.config/omarchy/current/theme` and drove
+  a waybar/aether pipeline that no longer exists — this is a from-scratch rewrite
+  for the new theme system, not a port.)
+
+### Custom bar (`omarchy/plugins/bbk.*`)
+
+Every bar widget is a clone of the stock Omarchy plugin (`omarchy plugin clone`),
+kept independently editable and update-safe. Highlights:
+
+- **Boxed modules** — each widget (workspaces, clock, weather, tray, agents,
+  bluetooth, wifi, volume, memory, monitor, battery) sits in its own rounded pill
+  with a solid theme-derived background (`Color.bar.background`/`Color.bar.text`,
+  not a wallpaper-sampled tint — fixes inconsistent contrast on a transparent bar).
+  4px corner radius, tuned inter-widget gap and internal padding.
+- **`bbk.workspaces`** — focused workspace pill shows the number *and* the active
+  window title inline, replacing the plain dot indicator.
+- **`bbk.memory`** — new widget, RAM % with the same icon/style as the old waybar
+  memory module; click opens `btop`.
+- **`bbk.audio` / `bbk.network` / `bbk.bluetooth`** — icon + live label (volume %,
+  connected SSID, connected device name), both icon and label clickable.
+- **`bbk.lock`** — restyled Quickshell lock screen: time/date/battery centered,
+  password field hidden until typed, no border, fully rounded. Only the visual
+  layer (`LockView.qml`) is touched — the PAM/session-lock logic in `Service.qml`
+  is untouched stock Omarchy.
+- Bar height bumped via `omarchy/shell.toml` (`[bar] size-horizontal`) since the
+  default shrinks with a smaller `[font] base-size`.
+
+**Known limitation:** the top-level `bar` and `service` plugin kinds load
+differently from `bar-widget`/`panel` kinds — cloning `omarchy.bar` itself
+(to add a shared per-widget box wrapper) crashes with
+`Required property ... was not initialized`. That's why the box styling is
+duplicated per-widget instead of centralized.
+
+### Setup on a new Omarchy 4 machine
+
+```bash
+# Hyprland Lua overrides
+cp configs/hypr/bindings.lua configs/hypr/input.lua configs/hypr/looknfeel.lua \
+   configs/hypr/autostart.lua ~/.config/hypr/
+
+# Bar layout + style tokens
+cp configs/omarchy/shell.json configs/omarchy/shell.toml ~/.config/omarchy/
+
+# Custom bar widgets + lock screen
+mkdir -p ~/.config/omarchy/plugins
+cp -r configs/omarchy/plugins/. ~/.config/omarchy/plugins/
+
+# Wallpaper portal (Nautilus "Set as Background" → theme regen)
+cp configs/omarchy/wallpaper-portal.py configs/omarchy/wallpaper-to-theme ~/.config/omarchy/
+chmod +x ~/.config/omarchy/wallpaper-to-theme
+mkdir -p ~/.local/share/xdg-desktop-portal/portals
+cp configs/.local/share/xdg-desktop-portal/portals/omarchy.portal \
+   ~/.local/share/xdg-desktop-portal/portals/
+
+hyprctl reload
+omarchy restart shell
+```
+
+> Validate any further Lua/QML edits with `hyprctl reload && hyprctl configerrors`
+> (Hyprland) or `qmllint -I /usr/share/omarchy/shell <file>` plus
+> `journalctl --user -t omarchy-shell` (shell plugins) before trusting a change.
+
+---
+
+## Legacy (pre-Omarchy-4)
+
+> Everything from here down describes the **waybar/hyprlock/mako** era. Most of it
+> was replaced wholesale by Omarchy 4's Quickshell shell and no longer applies —
+> kept for historical reference only.
 
 ## What you get
 
@@ -47,30 +152,8 @@ The Waybar pill background is especially smart: it measures the **luminosity of 
 
 ---
 
-### 🔋 Serious battery management
-
-Three power modes, one keybind (`Super+Shift+P`):
-
-| Mode | CPU max | GPU max | Profile |
-|------|---------|---------|---------|
-| Default | Unrestricted | Unrestricted | balanced |
-| Powersave | 800 MHz | 400 MHz | low-power |
-| Performance | Unrestricted + turbo | Unrestricted | performance |
-
-TLP is tuned with aggressive power saving defaults: PCI Express ASPM `powersupersave`, SATA link power, platform profile. The active mode persists across reboots — wake up in powersave, stay in powersave.
-
-Kernel-level tuning too: `vm.swappiness=10` (less swap thrashing on 30GB RAM) and `transparent_hugepage=madvise` to kill random CPU spikes.
-
-#### Known gaps / planned improvements
-
-| # | What | Why it matters | Notes |
-|---|------|----------------|-------|
-| 1 | **WiFi power save is off on battery** | ~0.5–1W wasted when WiFi is idle | `iw dev wlan0 get power_save` returns `off`. TLP default enables it (`WIFI_PWR_ON_BAT=on`) but the wake-from-suspend WiFi fix script overrides it. Fix: add `WIFI_PWR_ON_BAT=on` to `99-battery.conf` and audit `system-tweaks` to not permanently disable power save. |
-| 2 | **Battery conservation mode disabled** | Long-term capacity loss | `ideapad_laptop` driver exposes `/sys/devices/.../VPC2004:00/conservation_mode` (currently `0`). Enabling it caps charge at ~60%, preventing degradation while plugged in. 413 cycles already. TLP charge threshold sysfs nodes not present on this kernel; use conservation_mode directly or a systemd unit. |
-| 3 | **CPU min frequency not pinned** | Marginal idle waste | `CPU_SCALING_MIN_FREQ_ON_BAT/SAV=400000` not set. `intel_pstate` defaults to `min_perf_pct=8%` which is fine, but explicitly setting the floor prevents the scheduler from briefly ramping idle cores. |
-| 4 | **`s2idle` suspend instead of `deep` (S3)** | 1–3W draw during lid-closed suspend | `/sys/power/mem_sleep` shows only `[s2idle]` (Intel modern standby). `deep` S3 would drop to ~0.3W. Check BIOS → Power → Sleep State for S3 option — many Lenovo Slim BIOSes have it disabled by default. If enabled, set `MEM_SLEEP_ON_BAT=deep`. Tradeoff: slightly slower wake. |
-
----
+> **Battery/TLP tuning removed (2026-08-16):** not in use right now. If it comes
+> back, it'll be added fresh in a newer version rather than restored from here.
 
 ### ✋ Touchpad that gets out of your way
 
@@ -197,31 +280,34 @@ Custom TTE screensaver (`Ctrl+Super+S`) fades into the lock screen on exit rathe
 ```
 omarchy-setup/
 ├── configs/
-│   ├── hypr/               # Hyprland configs + scripts/ + border-colors.conf
-│   ├── waybar/             # Bar config + indicators/ + dynamic.css
+│   ├── hypr/               # bindings.lua, input.lua, looknfeel.lua, autostart.lua (Omarchy 4)
+│   │                       # + legacy *.conf files (pre-4, reference only)
+│   ├── waybar/             # LEGACY — bar config + indicators/ + dynamic.css (pre-4)
 │   ├── icons/              # Afterglow cursor theme
-│   ├── sysctl/             # vm.swappiness, THP madvise
-│   ├── tlp/                # Battery optimization overrides
 │   ├── xdg-desktop-portal/ # Portal routing (adds omarchy wallpaper backend)
 │   ├── omarchy/
+│   │   ├── plugins/bbk.*/  # Omarchy 4 custom shell plugins (bar widgets + lock screen)
+│   │   ├── shell.json      # Omarchy 4 bar layout (widget order, per-widget settings)
+│   │   ├── shell.toml      # Omarchy 4 style tokens (bar size, font scale overrides)
+│   │   ├── wallpaper-portal.py   # D-Bus service: Nautilus → wallpaper-to-theme
+│   │   ├── wallpaper-to-theme    # Omarchy 4: aether --generate → omarchy theme set
 │   │   ├── bin/            # Omarchy bin overrides (webapp launcher, brightness-display)
-│   │   ├── power-mode/     # TLP toggle + Waybar status script
 │   │   ├── branding/       # ASCII art (about, screensaver text)
 │   │   ├── extensions/     # System menu overrides (force shutdown)
 │   │   ├── hooks/          # post-update + theme-set hooks
-│   │   ├── wallpaper-portal.py   # D-Bus service: Nautilus → wallpaper-to-theme
 │   │   └── bluetooth-state.sh
 │   ├── system-tweaks/      # force-shutdown.sh, logind.conf
 │   ├── system-sleep/       # sot-hook.sh (sudo install: /etc/systemd/system-sleep/)
 │   ├── systemd/user/       # Custom user services (sot-daemon.service)
 │   ├── opencode/           # opencode config (memory plugin)
 │   └── .local/
-│       ├── bin/            # border-from-wallpaper, wallpaper-to-theme, sot-daemon
-│       └── share/xdg-desktop-portal/portals/  # omarchy.portal registration
+│       ├── bin/            # LEGACY — border-from-wallpaper, wallpaper-to-theme (pre-4), sot-daemon
+│       └── share/xdg-desktop-portal/portals/  # omarchy.portal registration (current)
 ├── scripts/
 │   └── sync-configs.sh     # Pull live configs back into repo
-├── post-update             # Auto-restores after omarchy-update
-├── recover-customizations.sh  # Manual restore / new machine setup
+├── restore-customizations.hook  # Post-update hook source — install via
+│                                 # `omarchy hook install post-update <file>`
+├── recover-customizations.sh    # Manual restore / new machine setup
 └── images/                 # Screenshots
 ```
 
@@ -230,9 +316,6 @@ omarchy-setup/
 ## Prerequisites
 
 ```bash
-# Power management
-sudo pacman -S tlp upower bc
-
 # Media + notifications
 sudo pacman -S playerctl mako pamixer libnotify jq
 
@@ -250,11 +333,6 @@ sudo pacman -S imagemagick python-dbus python-gobject
 pip install terminaltexteffects
 ```
 
-**Passwordless sudo for TLP:**
-```bash
-echo "$USER ALL=(ALL) NOPASSWD: /usr/bin/tlp" | sudo tee /etc/sudoers.d/tlp
-```
-
 **Python path** (if `terminaltexteffects` was installed under a different Python version):
 ```bash
 # Add to ~/.config/hypr/scripts/custom-screensaver-launch.sh
@@ -265,68 +343,23 @@ export PYTHONPATH="/usr/lib/python3.13/site-packages:$PYTHONPATH"
 
 ## Setup on a new machine
 
+`recover-customizations.sh` handles everything below in the right order —
+Hyprland Lua config, the bar/lock-screen plugins, wallpaper portal, cursor
+theme, SOT daemon, and installing the post-update hook properly via
+`omarchy hook install`:
+
 ```bash
 git clone <repo> ~/omarchy-setup
 cd ~/omarchy-setup
+./recover-customizations.sh
 
-# Copy configs
-./scripts/sync-configs.sh
-
-# Install post-update hook (auto-restores after omarchy update)
-mkdir -p ~/.config/omarchy/hooks
-cp post-update ~/.config/omarchy/hooks/
-chmod +x ~/.config/omarchy/hooks/post-update
-
-# Helper scripts
-mkdir -p ~/.local/bin
-cp configs/.local/bin/border-from-wallpaper ~/.local/bin/
-cp configs/.local/bin/wallpaper-to-theme ~/.local/bin/
-chmod +x ~/.local/bin/border-from-wallpaper ~/.local/bin/wallpaper-to-theme
-
-# Wallpaper portal (Nautilus "Set as Background")
-mkdir -p ~/.local/share/xdg-desktop-portal/portals ~/.config/xdg-desktop-portal
-cp configs/.local/share/xdg-desktop-portal/portals/omarchy.portal \
-   ~/.local/share/xdg-desktop-portal/portals/
-cp configs/xdg-desktop-portal/hyprland-portals.conf ~/.config/xdg-desktop-portal/
-cp configs/omarchy/wallpaper-portal.py ~/.config/omarchy/
-
-# System-wide configs (require sudo — not auto-restored by post-update)
-sudo cp configs/tlp/99-battery.conf /etc/tlp.d/
-sudo cp configs/sysctl/99-sysctl.conf /etc/sysctl.d/99-battery.conf
-sudo sysctl -p /etc/sysctl.d/99-battery.conf
-sudo cp configs/sysctl/transparent_hugepage.conf /etc/tmpfiles.d/
-echo madvise | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
-
-# Cursor theme
-mkdir -p ~/.local/share/icons
-cp -r configs/icons/Afterglow-cursors ~/.local/share/icons/
-
-# Generate theme from current wallpaper
-wallpaper-to-theme "$(readlink -f ~/.config/omarchy/current/background)"
-
-# SOT daemon (screen-on time tracker)
-mkdir -p ~/.local/bin ~/.config/systemd/user
-cp configs/.local/bin/sot-daemon ~/.local/bin/sot-daemon
-chmod +x ~/.local/bin/sot-daemon
-cp configs/systemd/user/sot-daemon.service ~/.config/systemd/user/
-systemctl --user daemon-reload
-systemctl --user enable --now sot-daemon.service
-
-# Omarchy bin overrides (webapp launcher + SOT brightness hook)
-cp configs/omarchy/bin/omarchy-launch-webapp ~/.local/share/omarchy/bin/
-cp configs/omarchy/bin/omarchy-brightness-display ~/.local/share/omarchy/bin/
-chmod +x ~/.local/share/omarchy/bin/omarchy-launch-webapp
-chmod +x ~/.local/share/omarchy/bin/omarchy-brightness-display
-
-# SOT sleep hook (signals daemon before sleep / after wake)
+# Not auto-installed (needs sudo):
 sudo cp configs/system-sleep/sot-hook.sh /etc/systemd/system-sleep/
 sudo chmod +x /etc/systemd/system-sleep/sot-hook.sh
 
-hyprctl reload
-omarchy restart waybar
+hyprctl reload && hyprctl configerrors
+omarchy restart shell
 ```
-
-> `/etc/` configs (TLP, sysctl) aren't touched by `post-update` and must be restored manually after a reinstall.
 
 ---
 
@@ -334,10 +367,16 @@ omarchy restart waybar
 
 ```bash
 # Make a change, test it, sync back to repo, commit
-vim ~/.config/waybar/style.css
-# test...
+vim ~/.config/omarchy/plugins/bbk.clock/BarWidget.qml
+# test with: qmllint -I /usr/share/omarchy/shell <file>
+# then: omarchy restart shell && journalctl --user -t omarchy-shell --since "-30 seconds"
 ~/omarchy-setup/scripts/sync-configs.sh
 cd ~/omarchy-setup && git add -A && git commit -m "..." && git push
 ```
 
-Before running `omarchy update`, do a quick `sync-configs.sh` as a snapshot. If the update overwrites anything, `recover-customizations.sh` brings it all back.
+Before running `omarchy update`, do a quick `sync-configs.sh` as a snapshot.
+The `restore-customizations.hook` post-update hook (installed via
+`omarchy hook install post-update`) restores everything automatically after
+an update, and **flags a warning if the update changed something this repo
+also manages** rather than silently overwriting it — check for `⚠ DRIFT`
+lines in the post-update output and fold in anything worth keeping.

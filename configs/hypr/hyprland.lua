@@ -22,6 +22,11 @@ require("hypr.bindings")
 require("hypr.looknfeel")
 require("hypr.autostart")
 
+-- Optional modules — installed by their own omarchy-setup steps; silently
+-- skipped when absent so stock Hyprland config never breaks.
+pcall(require, "hypr.cursor")    -- Afterglow cursor env vars (cursor module)
+pcall(require, "hypr.bootlock")  -- lock screen at boot (boot-lock module)
+
 -- Toggle config flags dynamically.
 require("default.hypr.toggles")
 

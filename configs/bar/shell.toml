@@ -1,0 +1,6 @@
+[font]
+base-size = 10
+
+[bar]
+scale-with-font = false
+size-horizontal = 28

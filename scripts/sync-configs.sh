@@ -1,6 +1,5 @@
 #!/bin/bash
-
-# sync-configs.sh - Sync actual config files to omarchy-setup repo
+# sync-configs.sh — Pull live configs back into omarchy-setup repo.
 
 set -euo pipefail
 
@@ -17,131 +16,78 @@ log_info()    { echo -e "${BLUE}  $1${NC}"; }
 log_success() { echo -e "${GREEN}  $1${NC}"; }
 log_warning() { echo -e "${YELLOW}  $1${NC}"; }
 
-rsync_config() {
-  local app_name="$1"
-  local src="$CONFIG_DIR/$app_name"
-  local dst="$SOURCE_DIR/$app_name"
-
-  if [[ -d "$src" ]]; then
-    log_info "Syncing $app_name..."
-    rm -rf "$dst"
-    mkdir -p "$dst"
-    rsync -a --exclude='.git' --exclude='*.bak.*' --exclude='*.bak' --exclude='cache' --exclude='__pycache__' "$src/" "$dst/"
-    log_success "Synced $app_name"
-  else
-    log_warning "$app_name not found, skipping"
-  fi
-}
-
-sync_file() {
-  local app_name="$1"
-  local file="$2"
-  local src="$CONFIG_DIR/$file"
-  local dst="$SOURCE_DIR/$app_name"
-
-  if [[ -f "$src" ]]; then
-    mkdir -p "$dst"
-    cp "$src" "$dst/"
-    log_success "Synced $file"
-  else
-    log_warning "$file not found, skipping"
-  fi
-}
-
 mkdir -p "$SOURCE_DIR"
 
-rsync_config "hypr"
-rsync_config "waybar"
-rsync_config "system-tweaks"
-rsync_config "swayosd"
-rsync_config "mako"
-sync_file "opencode" "opencode/opencode.json"
+# ── Hyprland (.lua only) ──────────────────────────────────────────────
+log_info "Syncing hypr (.lua only)..."
+rm -rf "$SOURCE_DIR/hypr"
+mkdir -p "$SOURCE_DIR/hypr"
+rsync -a --include='*.lua' --include='*.json' --exclude='*' \
+  "$CONFIG_DIR/hypr/" "$SOURCE_DIR/hypr/"
+log_success "Synced hypr"
 
-# Sync omarchy customizations (not theme files, just custom additions)
-mkdir -p "$SOURCE_DIR/omarchy"
-cp -r "$CONFIG_DIR/omarchy/bluetooth-state.sh"    "$SOURCE_DIR/omarchy/" 2>/dev/null || true
-cp -r "$CONFIG_DIR/omarchy/branding"              "$SOURCE_DIR/omarchy/" 2>/dev/null || true
-cp -r "$CONFIG_DIR/omarchy/extensions"            "$SOURCE_DIR/omarchy/" 2>/dev/null || true
-cp -r "$CONFIG_DIR/omarchy/hooks"                 "$SOURCE_DIR/omarchy/" 2>/dev/null || true
-
-# Sync omarchy bin overrides from ~/.local/share/omarchy/bin
-mkdir -p "$SOURCE_DIR/omarchy/bin"
-for script in omarchy-launch-webapp omarchy-brightness-display omarchy-capture-screenshot; do
-  if [[ -f "$HOME/.local/share/omarchy/bin/$script" ]]; then
-    cp "$HOME/.local/share/omarchy/bin/$script" "$SOURCE_DIR/omarchy/bin/$script"
-    chmod +x "$SOURCE_DIR/omarchy/bin/$script"
-    log_success "Synced omarchy/bin/$script"
+# ── Bar ───────────────────────────────────────────────────────────────
+if [[ -d "$CONFIG_DIR/omarchy" ]]; then
+  for f in shell.json shell.toml; do
+    if [[ -f "$CONFIG_DIR/omarchy/$f" ]]; then
+      cp "$CONFIG_DIR/omarchy/$f" "$SOURCE_DIR/bar/$f"
+      log_success "Synced bar/$f"
+    fi
+  done
+  if [[ -d "$CONFIG_DIR/omarchy/plugins" ]]; then
+    log_info "Syncing bar/plugins..."
+    mkdir -p "$SOURCE_DIR/bar/plugins"
+    rsync -a --delete --exclude='.*' "$CONFIG_DIR/omarchy/plugins/" "$SOURCE_DIR/bar/plugins/"
+    log_success "Synced bar/plugins"
   fi
-done
-
-# Sync helper scripts in ~/.local/bin
-mkdir -p "$SOURCE_DIR/.local/bin"
-for script in border-from-wallpaper wallpaper-to-theme sot-daemon; do
-  if [[ -f "$HOME/.local/bin/$script" ]]; then
-    cp "$HOME/.local/bin/$script" "$SOURCE_DIR/.local/bin/$script"
-    chmod +x "$SOURCE_DIR/.local/bin/$script"
-    log_success "Synced .local/bin/$script"
-  fi
-done
-
-# Sync wallpaper portal backend + theme generator (Omarchy 4)
-if [[ -f "$HOME/.config/omarchy/wallpaper-portal.py" ]]; then
-  cp "$HOME/.config/omarchy/wallpaper-portal.py" "$SOURCE_DIR/omarchy/wallpaper-portal.py"
-  log_success "Synced omarchy/wallpaper-portal.py"
-fi
-if [[ -f "$HOME/.config/omarchy/wallpaper-to-theme" ]]; then
-  cp "$HOME/.config/omarchy/wallpaper-to-theme" "$SOURCE_DIR/omarchy/wallpaper-to-theme"
-  chmod +x "$SOURCE_DIR/omarchy/wallpaper-to-theme"
-  log_success "Synced omarchy/wallpaper-to-theme"
 fi
 
-# Sync Omarchy 4 bar layout, style tokens, and custom shell plugins
-for f in shell.json shell.toml; do
-  if [[ -f "$HOME/.config/omarchy/$f" ]]; then
-    cp "$HOME/.config/omarchy/$f" "$SOURCE_DIR/omarchy/$f"
-    log_success "Synced omarchy/$f"
-  fi
-done
-if [[ -d "$HOME/.config/omarchy/plugins" ]]; then
-  log_info "Syncing omarchy/plugins (bbk.* custom widgets)..."
-  mkdir -p "$SOURCE_DIR/omarchy/plugins"
-  # Exclude dotfile-prefixed dirs — `omarchy plugin remove` drops rollback
-  # backups there (.bbk.<name>.bak.<timestamp>), not real config.
-  rsync -a --delete --exclude='.*' "$HOME/.config/omarchy/plugins/" "$SOURCE_DIR/omarchy/plugins/"
-  log_success "Synced omarchy/plugins"
+# ── Wallpaper pipeline ────────────────────────────────────────────────
+if [[ -f "$CONFIG_DIR/omarchy/wallpaper-portal.py" ]]; then
+  cp "$CONFIG_DIR/omarchy/wallpaper-portal.py" "$SOURCE_DIR/wallpaper/wallpaper-portal.py"
+  log_success "Synced wallpaper/wallpaper-portal.py"
+fi
+if [[ -f "$CONFIG_DIR/omarchy/wallpaper-to-theme" ]]; then
+  cp "$CONFIG_DIR/omarchy/wallpaper-to-theme" "$SOURCE_DIR/wallpaper/wallpaper-to-theme"
+  chmod +x "$SOURCE_DIR/wallpaper/wallpaper-to-theme"
+  log_success "Synced wallpaper/wallpaper-to-theme"
+fi
+if [[ -f "$HOME/.local/share/xdg-desktop-portal/portals/omarchy.portal" ]]; then
+  cp "$HOME/.local/share/xdg-desktop-portal/portals/omarchy.portal" "$SOURCE_DIR/portal/omarchy.portal"
+  log_success "Synced portal/omarchy.portal"
+fi
+if [[ -f "$CONFIG_DIR/xdg-desktop-portal/hyprland-portals.conf" ]]; then
+  cp "$CONFIG_DIR/xdg-desktop-portal/hyprland-portals.conf" "$SOURCE_DIR/portal/hyprland-portals.conf"
+  log_success "Synced portal/hyprland-portals.conf"
 fi
 
-# Sync cursor theme
+# ── Cursor ────────────────────────────────────────────────────────────
 if [[ -d "$HOME/.local/share/icons/Afterglow-cursors" ]]; then
   log_info "Syncing cursor theme..."
-  mkdir -p "$SOURCE_DIR/icons"
-  rsync -a --delete "$HOME/.local/share/icons/Afterglow-cursors/" "$SOURCE_DIR/icons/Afterglow-cursors/"
-  log_success "Synced icons/Afterglow-cursors"
+  mkdir -p "$SOURCE_DIR/cursor"
+  rsync -a --delete "$HOME/.local/share/icons/Afterglow-cursors/" "$SOURCE_DIR/cursor/Afterglow-cursors/"
+  log_success "Synced cursor/Afterglow-cursors"
 fi
 
-# Sync xdg-desktop-portal configs (Nautilus wallpaper portal routing)
-mkdir -p "$SOURCE_DIR/.local/share/xdg-desktop-portal/portals"
-if [[ -f "$HOME/.local/share/xdg-desktop-portal/portals/omarchy.portal" ]]; then
-  cp "$HOME/.local/share/xdg-desktop-portal/portals/omarchy.portal" \
-     "$SOURCE_DIR/.local/share/xdg-desktop-portal/portals/omarchy.portal"
-  log_success "Synced xdg-desktop-portal omarchy.portal"
-fi
-mkdir -p "$SOURCE_DIR/xdg-desktop-portal"
-if [[ -f "$HOME/.config/xdg-desktop-portal/hyprland-portals.conf" ]]; then
-  cp "$HOME/.config/xdg-desktop-portal/hyprland-portals.conf" \
-     "$SOURCE_DIR/xdg-desktop-portal/hyprland-portals.conf"
-  log_success "Synced xdg-desktop-portal/hyprland-portals.conf"
-fi
+# ── Bin overrides ─────────────────────────────────────────────────────
+for script in omarchy-launch-webapp omarchy-brightness-display omarchy-capture-screenshot; do
+  if [[ -f "$HOME/.local/share/omarchy/bin/$script" ]]; then
+    cp "$HOME/.local/share/omarchy/bin/$script" "$SOURCE_DIR/bin/$script"
+    chmod +x "$SOURCE_DIR/bin/$script"
+    log_success "Synced bin/$script"
+  fi
+done
 
-# Sync system-level sleep hook (read-only copy; install requires sudo)
-mkdir -p "$SOURCE_DIR/system-sleep"
-if [[ -f "/etc/systemd/system-sleep/sot-hook.sh" ]]; then
-  cp "/etc/systemd/system-sleep/sot-hook.sh" "$SOURCE_DIR/system-sleep/sot-hook.sh"
-  log_success "Synced system-sleep/sot-hook.sh"
+# ── Branding (only if user has customized) ────────────────────────────
+if [[ -f "$CONFIG_DIR/omarchy/branding/about.txt" ]]; then
+  cp "$CONFIG_DIR/omarchy/branding/about.txt" "$SOURCE_DIR/branding/about.txt"
+  log_success "Synced branding/about.txt"
+fi
+if [[ -f "$CONFIG_DIR/omarchy/branding/screensaver.txt" ]]; then
+  cp "$CONFIG_DIR/omarchy/branding/screensaver.txt" "$SOURCE_DIR/branding/screensaver.txt"
+  log_success "Synced branding/screensaver.txt"
 fi
 
 log_success "All configurations synced!"
-echo
-log_warning "NOTE: system-sleep/sot-hook.sh must be installed manually: sudo cp configs/system-sleep/sot-hook.sh /etc/systemd/system-sleep/ && sudo chmod +x /etc/systemd/system-sleep/sot-hook.sh"
 echo
 echo "Next: cd ~/omarchy-setup && git add -A && git commit -m 'Update configs' && git push"

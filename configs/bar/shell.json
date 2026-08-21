@@ -1,0 +1,59 @@
+{
+  "bar": {
+    "centerAnchor": "omarchy.clock",
+    "layout": {
+      "center": [
+        {
+          "format": "MMM d, ddd HH:mm",
+          "id": "custom.clock",
+          "verticalFormat": "HH\n—\nmm"
+        },
+        {
+          "id": "custom.weather"
+        },
+        {
+          "id": "custom.system-update"
+        }
+      ],
+      "left": [
+        {
+          "id": "custom.workspaces"
+        }
+      ],
+      "right": [
+        {
+          "id": "custom.tray"
+        },
+        {
+          "id": "custom.agents"
+        },
+        {
+          "id": "custom.bluetooth"
+        },
+        {
+          "id": "custom.audio"
+        },
+        {
+          "id": "custom.network"
+        },
+        {
+          "id": "custom.memory"
+        },
+        {
+          "id": "custom.monitor"
+        },
+        {
+          "id": "custom.power",
+          "showPercentage": true
+        }
+      ]
+    },
+    "position": "top",
+    "transparent": true
+  },
+  "idle": {
+    "lock": 300,
+    "screensaver": 150
+  },
+  "version": 1
+}

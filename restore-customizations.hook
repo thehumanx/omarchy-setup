@@ -1,15 +1,11 @@
 #!/bin/bash
 
 # Post-update hook to restore customizations after Omarchy updates.
-# Installed at ~/.config/omarchy/hooks/post-update
+# Installed via: omarchy hook install post-update <this-file>
 #
-# Omarchy updates can silently rewrite files this repo also manages (bar
-# widgets, keybindings, shell config). Every restore below diffs the live
-# file against the repo copy FIRST and prints a warning if they differ,
-# before overwriting — so an update that changed something gets flagged
-# instead of silently clobbered. The repo copy always wins after the
-# warning; review the diff and update the repo by hand if the upstream
-# change is worth keeping.
+# Every restore diffs the live file against the repo copy FIRST and prints
+# a DRIFT warning if they differ, before overwriting — so an update that
+# changed something gets flagged instead of silently clobbered.
 
 set -uo pipefail
 
@@ -19,88 +15,71 @@ CONFIG_DIR="$HOME/.config"
 echo "--- Restoring customizations after Omarchy update ---"
 
 restore_config() {
-  local src="$1"
-  local dst="$2"
-  if [[ -f "$src" ]]; then
-    if [[ -f "$dst" ]] && ! cmp -s "$src" "$dst"; then
-      echo "  ⚠ DRIFT: $dst changed since last sync — overwriting with repo version."
-      echo "      review: diff \"$dst\" \"$src\""
-    fi
-    mkdir -p "$(dirname "$dst")"
-    cp "$src" "$dst"
-    echo "  Restored: $dst"
+  local src="$1" dst="$2"
+  [[ -f "$src" ]] || return
+  if [[ -f "$dst" ]] && ! cmp -s "$src" "$dst"; then
+    echo "  WARNING DRIFT: $dst changed since last sync — overwriting with repo version."
+    echo "      review: diff \"$dst\" \"$src\""
   fi
+  mkdir -p "$(dirname "$dst")"
+  cp "$src" "$dst"
+  echo "  Restored: $dst"
 }
 
 restore_dir() {
-  local src="$1"
-  local dst="$2"
-  if [[ -d "$src" ]]; then
-    mkdir -p "$dst"
-    cp -r "$src"/* "$dst/" 2>/dev/null || true
-    echo "  Restored: $dst/"
-  fi
+  local src="$1" dst="$2"
+  [[ -d "$src" ]] || return
+  mkdir -p "$dst"
+  cp -r "$src"/* "$dst/" 2>/dev/null || true
+  echo "  Restored: $dst/"
 }
 
-# Restores a whole tree and flags any file that differs or was removed —
-# used for the bar/lock-screen plugins, where an Omarchy update could add
-# a new upstream file our clone doesn't know about, or change one we do.
 restore_tree() {
-  local src="$1"
-  local dst="$2"
-  if [[ -d "$src" ]]; then
-    if [[ -d "$dst" ]]; then
-      local diffs
-      diffs=$(diff -rq "$dst" "$src" 2>/dev/null | grep -v "^Only in $src" || true)
-      if [[ -n "$diffs" ]]; then
-        echo "  ⚠ DRIFT under $dst (differs from repo before restore):"
-        echo "$diffs" | sed 's/^/      /'
-      fi
+  local src="$1" dst="$2"
+  [[ -d "$src" ]] || return
+  if [[ -d "$dst" ]]; then
+    local diffs
+    diffs=$(diff -rq "$dst" "$src" 2>/dev/null | grep -v "^Only in $src" || true)
+    if [[ -n "$diffs" ]]; then
+      echo "  WARNING DRIFT under $dst (differs from repo before restore):"
+      echo "$diffs" | sed 's/^/      /'
     fi
-    mkdir -p "$dst"
-    rsync -a --delete "$src"/ "$dst"/
-    echo "  Restored: $dst/"
   fi
+  mkdir -p "$dst"
+  rsync -a --delete "$src"/ "$dst"/
+  echo "  Restored: $dst/"
 }
 
-# ---------------------------------------------------------------- Omarchy 4
+# ── Hyprland ──────────────────────────────────────────────────────────
+echo "== Hyprland (Lua) =="
+for f in "$SETUP_DIR/configs/hypr/"*.lua; do
+  restore_config "$f" "$CONFIG_DIR/hypr/$(basename "$f")"
+done
 
-# Hyprland Lua config
-restore_config "$SETUP_DIR/configs/hypr/bindings.lua"    "$CONFIG_DIR/hypr/bindings.lua"
-restore_config "$SETUP_DIR/configs/hypr/input.lua"       "$CONFIG_DIR/hypr/input.lua"
-restore_config "$SETUP_DIR/configs/hypr/looknfeel.lua"   "$CONFIG_DIR/hypr/looknfeel.lua"
-restore_config "$SETUP_DIR/configs/hypr/autostart.lua"   "$CONFIG_DIR/hypr/autostart.lua"
+# ── Custom bar ────────────────────────────────────────────────────────
+echo "== Custom bar =="
+restore_config "$SETUP_DIR/configs/bar/shell.json"   "$CONFIG_DIR/omarchy/shell.json"
+restore_config "$SETUP_DIR/configs/bar/shell.toml"   "$CONFIG_DIR/omarchy/shell.toml"
+restore_tree   "$SETUP_DIR/configs/bar/plugins"      "$CONFIG_DIR/omarchy/plugins"
 
-# Omarchy shell: bar layout, style tokens, custom widget/lock-screen plugins
-restore_config "$SETUP_DIR/configs/omarchy/shell.json"   "$CONFIG_DIR/omarchy/shell.json"
-restore_config "$SETUP_DIR/configs/omarchy/shell.toml"   "$CONFIG_DIR/omarchy/shell.toml"
-restore_tree   "$SETUP_DIR/configs/omarchy/plugins"      "$CONFIG_DIR/omarchy/plugins"
+# ── Lock screen (inject into shell.json) ──────────────────────────────
+echo "== Lock screen =="
+if [[ -d "$SETUP_DIR/configs/bar/plugins/custom.lock" ]]; then
+  if [[ -f "$CONFIG_DIR/omarchy/shell.json" ]] && command -v python3 &>/dev/null; then
+    python3 "$SETUP_DIR/install/lock-inject.py" "$CONFIG_DIR/omarchy/shell.json"
+  fi
+fi
 
-# Wallpaper portal backend (Nautilus "Set as Background" → aether theme generation)
-restore_config "$SETUP_DIR/configs/omarchy/wallpaper-portal.py"   "$CONFIG_DIR/omarchy/wallpaper-portal.py"
-restore_config "$SETUP_DIR/configs/omarchy/wallpaper-to-theme"    "$CONFIG_DIR/omarchy/wallpaper-to-theme"
-restore_config "$SETUP_DIR/configs/.local/share/xdg-desktop-portal/portals/omarchy.portal" \
-               "$HOME/.local/share/xdg-desktop-portal/portals/omarchy.portal"
-restore_config "$SETUP_DIR/configs/xdg-desktop-portal/hyprland-portals.conf" \
-               "$CONFIG_DIR/xdg-desktop-portal/hyprland-portals.conf"
+# ── Wallpaper pipeline ────────────────────────────────────────────────
+echo "== Wallpaper pipeline =="
+restore_config "$SETUP_DIR/configs/wallpaper/wallpaper-portal.py"  "$CONFIG_DIR/omarchy/wallpaper-portal.py"
+restore_config "$SETUP_DIR/configs/wallpaper/wallpaper-to-theme"   "$CONFIG_DIR/omarchy/wallpaper-to-theme"
+restore_config "$SETUP_DIR/configs/portal/omarchy.portal"          "$HOME/.local/share/xdg-desktop-portal/portals/omarchy.portal"
+restore_config "$SETUP_DIR/configs/portal/hyprland-portals.conf"   "$CONFIG_DIR/xdg-desktop-portal/hyprland-portals.conf"
 
-# ---------------------------------------------------------------- Shared / non-bar
-
-# Omarchy custom modules
-restore_dir "$SETUP_DIR/configs/omarchy/branding"           "$CONFIG_DIR/omarchy/branding"
-restore_dir "$SETUP_DIR/configs/omarchy/extensions"          "$CONFIG_DIR/omarchy/extensions"
-restore_dir "$SETUP_DIR/configs/omarchy/hooks"                "$CONFIG_DIR/omarchy/hooks"
-restore_config "$SETUP_DIR/configs/omarchy/bluetooth-state.sh" "$CONFIG_DIR/omarchy/bluetooth-state.sh"
-
-# Helper scripts
-restore_config "$SETUP_DIR/configs/.local/bin/border-from-wallpaper" "$HOME/.local/bin/border-from-wallpaper"
-restore_config "$SETUP_DIR/configs/local-bin/sot-daemon"             "$HOME/.local/bin/sot-daemon"
-
-# Systemd user services
-restore_config "$SETUP_DIR/configs/systemd/user/sot-daemon.service"  "$HOME/.config/systemd/user/sot-daemon.service"
-
-# Cursor theme
-restore_tree "$SETUP_DIR/configs/icons/Afterglow-cursors" "$HOME/.local/share/icons/Afterglow-cursors"
+# ── Cursor ────────────────────────────────────────────────────────────
+echo "== Cursor theme =="
+restore_tree "$SETUP_DIR/configs/cursor/Afterglow-cursors" "$HOME/.local/share/icons/Afterglow-cursors"
 if command -v gsettings &>/dev/null; then
   gsettings set org.gnome.desktop.interface cursor-theme "Afterglow-cursors" 2>/dev/null || true
   gsettings set org.gnome.desktop.interface cursor-size 24 2>/dev/null || true
@@ -109,21 +88,24 @@ if command -v hyprctl &>/dev/null; then
   hyprctl setcursor "Afterglow-cursors" 24 2>/dev/null || true
 fi
 
-# System-tweaks
-restore_dir "$SETUP_DIR/configs/system-tweaks"              "$CONFIG_DIR/system-tweaks"
+# ── Bin overrides ─────────────────────────────────────────────────────
+echo "== Bin overrides =="
+for f in "$SETUP_DIR/configs/bin/"*; do
+  [[ -f "$f" ]] || continue
+  restore_config "$f" "$HOME/.local/share/omarchy/bin/$(basename "$f")"
+done
 
-# OpenCode config
-restore_config "$SETUP_DIR/configs/opencode/opencode.json"  "$CONFIG_DIR/opencode/opencode.json"
+# ── Branding ──────────────────────────────────────────────────────────
+echo "== Branding =="
+if [[ -f "$SETUP_DIR/configs/branding/about.txt" ]]; then
+  restore_config "$SETUP_DIR/configs/branding/about.txt" "$CONFIG_DIR/omarchy/branding/about.txt"
+fi
+if [[ -f "$SETUP_DIR/configs/branding/screensaver.txt" ]]; then
+  restore_config "$SETUP_DIR/configs/branding/screensaver.txt" "$CONFIG_DIR/omarchy/branding/screensaver.txt"
+fi
 
-# Ensure scripts are executable
+# ── Ensure scripts are executable ─────────────────────────────────────
 chmod +x "$CONFIG_DIR/omarchy/wallpaper-to-theme" 2>/dev/null || true
-chmod +x "$CONFIG_DIR/omarchy/bluetooth-state.sh" 2>/dev/null || true
-chmod +x "$CONFIG_DIR/omarchy/hooks/theme-set.d/"* 2>/dev/null || true
-chmod +x "$HOME/.local/bin/border-from-wallpaper" 2>/dev/null || true
-chmod +x "$HOME/.local/bin/sot-daemon" 2>/dev/null || true
-
-systemctl --user daemon-reload 2>/dev/null || true
-systemctl --user enable --now sot-daemon.service 2>/dev/null || true
 
 echo "--- Customizations restored ---"
 echo "If any DRIFT warnings printed above, review them — Omarchy's update may"

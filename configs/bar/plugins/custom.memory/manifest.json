@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "custom.memory",
+  "name": "Memory",
+  "version": "1.0.0",
+  "author": "custom",
+  "description": "RAM usage percentage",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "Memory.qml"
+  },
+  "barWidget": {
+    "displayName": "Memory",
+    "description": "RAM usage percentage",
+    "category": "System",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}

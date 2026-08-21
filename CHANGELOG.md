@@ -1,5 +1,68 @@
 # Changelog - Omarchy Setup
 
+## 2026-08-21 - Modular step-by-step installer; remove lid-hibernate & force-shutdown
+
+The repo moved from a handful of flat scripts to a **module-based installer**:
+each feature is an independent step in `install/modules/`, walked one at a
+time by `install.sh` / `uninstall.sh` with per-step file previews and
+proceed/skip/abort prompts. Along the way, two power tweaks were dropped.
+
+### Removed
+
+1. **Lid-close hibernate (`logind.conf`)** — the custom
+   `HandleLidSwitch=hibernate` override is gone from the repo, and the live
+   system is back to stock behavior (`HandleLidSwitch=ignore` for all three
+   lid switch modes). Closing the lid no longer hibernates.
+2. **Force shutdown (`force-shutdown.sh`)** — instant-kill shutdown script
+   removed from the live system and repo; nothing (menus, modules, hooks,
+   scripts) references it anymore.
+3. `configs/system-tweaks/` directory and the matching install module deleted;
+   README sections documenting both features removed.
+
+### Added
+
+4. **Boot-lock module** — `configs/boot-lock/bootlock.lua` runs
+   `omarchy-shell lock lock` via `exec_on_start`, so SDDM autologin still
+   happens but the lock screen covers the session the instant Hyprland starts.
+   Optional: loaded via pcall, so skipping the module leaves stock behavior.
+
+### Changed
+
+5. **Cursor env vars split out of `looknfeel.lua`** into a dedicated
+   `configs/cursor/cursor.lua`, installed to `~/.config/hypr/` by the cursor
+   module — cursor config now lives entirely inside its own step.
+6. **`hyprland.lua` gained a safe optional-module loader** — `pcall(require, ...)`
+   for `hypr.cursor` and `hypr.bootlock`, so missing optional files never
+   break Hyprland config loading.
+7. **`configs/` reorganized by feature**: new `bar/`, `boot-lock/`,
+   `branding/`, `cursor/`, `hooks/`, `portal/`, `wallpaper/` dirs replace the
+   old mixed layout; `.luarc.json` added for Lua linting.
+8. **Automation rewritten for Omarchy 4 + modules** — `install.sh` /
+   `uninstall.sh` walk 8 modules (bar, wallpaper-pipeline, lock, hyprland,
+   branding, cursor, boot-lock, post-update-hook); `sync-configs.sh`,
+   `recover-customizations.sh`, and `restore-customizations.hook` updated to
+   match. README structure/docs updated accordingly.
+
+## 2026-08-17 - Fix monitor layout: external Dell above laptop panel
+
+`monitors.lua` was setting `position = "top"` (also tried `"up"`) on the
+wildcard `hl.monitor` rule — neither is a valid Hyprland position keyword
+(valid values are `auto`, `auto-left/right/up/down`, or exact `XxY`
+coordinates), so it silently fell back to Hyprland's default right-of
+placement. The external Dell U2520D (`HDMI-A-1`) was sitting at `1920x0`
+instead of above the laptop panel.
+
+### Changes Made
+
+1. Replaced the single wildcard rule with two explicit `hl.monitor` entries:
+   `eDP-1` (laptop panel) at `0x0`, `HDMI-A-1` (Dell U2520D, 2560x1440) at
+   `0x-1440` — directly above, left-aligned so its bottom edge sits flush
+   against the top edge of the laptop screen. Moving the pointer off the top
+   edge of the laptop screen now lands on the external monitor.
+2. Validated with `hyprctl reload` + `hyprctl configerrors` (clean) and
+   confirmed live placement with `hyprctl monitors`.
+3. Synced to `configs/hypr/monitors.lua` via `sync-configs.sh`.
+
 ## 2026-08-16 (later still) - Activate Afterglow cursor theme on Omarchy 4
 
 The cursor theme files were already on disk (`~/.local/share/icons/Afterglow-cursors`,

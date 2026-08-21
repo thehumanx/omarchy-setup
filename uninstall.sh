@@ -1,13 +1,13 @@
 #!/bin/bash
-# omarchy-setup interactive installer — one step at a time.
-# Each step shows what it does, which files it touches, then lets you
-# proceed, skip, or abort. Progress shown per-step and overall.
+# omarchy-setup uninstaller — one step at a time.
+# Reverts installed customizations back to stock Omarchy, with per-step
+# details, skip/proceed prompts, and progress indicators.
 #
 # Usage:
-#   ./install.sh                    Step-by-step through all customizations
-#   ./install.sh --all              Install everything without prompting
-#   ./install.sh --only bar,cursor  Step-by-step through selected modules only
-#   ./install.sh --help             Show help
+#   ./uninstall.sh                    Step-by-step through all customizations
+#   ./uninstall.sh --all              Uninstall everything without prompting
+#   ./uninstall.sh --only bar,cursor  Step-by-step through selected modules only
+#   ./uninstall.sh --help             Show help
 
 set -uo pipefail
 
@@ -28,8 +28,8 @@ MODULE_ORDER=(
 usage() {
   echo "Usage: $0 [--all | --only mod1,mod2 | --help]"
   echo ""
-  echo "  (no args)            Step-by-step through all customizations"
-  echo "  --all                Install everything without prompting"
+  echo "  (no args)            Step-by-step revert of all customizations"
+  echo "  --all                Uninstall everything without prompting"
   echo "  --only mod1,mod2     Walk through only the named modules"
   echo "  --help               Show this help"
   echo ""
@@ -37,20 +37,15 @@ usage() {
 }
 
 module_file() { echo "$SCRIPT_DIR/install/modules/$1.sh"; }
-
-module_desc() {
-  bash -c "source '$SCRIPT_DIR/install/modules/common.sh' >/dev/null; source '$(module_file "$1")'; description"
-}
-
-# ── Overview ──────────────────────────────────────────────────────────
+module_desc() { bash -c "source '$SCRIPT_DIR/install/modules/common.sh' >/dev/null; source '$(module_file "$1")'; description"; }
 
 show_overview() {
   local -a names=("$@")
   clear
   echo ""
   HR
-  echo -e "  ${BOLD}${CYAN}omarchy-setup installer${NC}"
-  echo -e "  ${DIM}${#names[@]} customization(s), applied one step at a time.${NC}"
+  echo -e "  ${BOLD}${RED}omarchy-setup uninstaller${NC} ${BOLD}— revert to stock Omarchy${NC}"
+  echo -e "  ${DIM}${#names[@]} customization(s), reverted one step at a time.${NC}"
   HR
   echo ""
   local i=1
@@ -60,12 +55,11 @@ show_overview() {
   done
   echo ""
   HR
-  echo -e "  ${CYAN}Each step:${NC} see details → choose ${GREEN}proceed${NC} / ${YELLOW}skip${NC} / ${RED}abort${NC}"
+  echo -e "  ${DIM}Files you modified before installing are restored from backups;${NC}"
+  echo -e "  ${DIM}files installed fresh are removed.${NC}"
   echo ""
   read -rp "  Press Enter to start, or Ctrl+C to cancel..." _
 }
-
-# ── Runner ────────────────────────────────────────────────────────────
 
 run_steps() {
   local interactive="$1"; shift
@@ -89,8 +83,7 @@ run_steps() {
       esac
     fi
 
-    # Run the module's install()
-    if run_module_fn "$(module_file "$mod")" install; then
+    if run_module_fn "$(module_file "$mod")" uninstall; then
       results+=("done")
     else
       results+=("failed")
@@ -101,7 +94,6 @@ run_steps() {
 
   cleanup_empty_dirs
 
-  # ── Summary ────────────────────────────────────────────────────────
   echo ""
   HR
   echo -e "  ${BOLD}${CYAN}Summary${NC}"
@@ -109,7 +101,7 @@ run_steps() {
   local i=1 failures=0
   for idx in "${!names[@]}"; do
     case "${results[$idx]}" in
-      done)    echo -e "  ${GREEN}✔${NC} Step $i: $(module_desc "${names[$idx]}")" ;;
+      done)    echo -e "  ${GREEN}✔${NC} Step $i: reverted — $(module_desc "${names[$idx]}")" ;;
       skipped) echo -e "  ${YELLOW}→${NC} Step $i: skipped — $(module_desc "${names[$idx]}")" ;;
       failed)  echo -e "  ${RED}✘${NC} Step $i: FAILED — $(module_desc "${names[$idx]}")"; ((failures++)) ;;
     esac
@@ -124,12 +116,9 @@ run_steps() {
 
   echo ""
   echo -e "${BOLD}Next steps:${NC}"
-  echo -e "  1. ${CYAN}hyprctl reload && hyprctl configerrors${NC}  — validate Hyprland changes"
-  echo -e "  2. ${CYAN}omarchy restart shell${NC}                    — apply bar/lock screen changes"
+  echo -e "  ${CYAN}hyprctl reload${NC} && ${CYAN}omarchy restart shell${NC}"
   echo ""
 }
-
-# ── Main ──────────────────────────────────────────────────────────────
 
 case "${1:-}" in
   --help|-h) usage; exit 0 ;;

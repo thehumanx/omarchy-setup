@@ -1,4 +1,4 @@
-# Custom Omarchy Setup
+# Omarchy Configs
 
 > A curated layer of customizations on top of [Omarchy Linux](https://omarchy.org/) by DHH —
 > daily-driving Arch + Hyprland without the rough edges.
@@ -173,7 +173,7 @@ warning** if the update changed something the repo also manages.
 ## Structure
 
 ```
-omarchy-setup/
+omarchy-configs/
 ├── install.sh                      # Interactive installer (step-by-step modules)
 ├── uninstall.sh                    # Interactive uninstaller (revert to stock)
 ├── install/modules/                # Install modules (one per feature)
@@ -219,8 +219,8 @@ sudo pacman -S python-dbus python-gobject
 ## Setup on a new machine
 
 ```bash
-git clone <repo> ~/omarchy-setup
-cd ~/omarchy-setup
+git clone <repo> ~/omarchy-configs
+cd ~/omarchy-configs
 ./install.sh              # pick what you want
 # or
 ./install.sh --all        # install everything
@@ -235,8 +235,8 @@ cd ~/omarchy-setup
 vim ~/.config/omarchy/plugins/custom.clock/BarWidget.qml
 # test with: qmllint -I /usr/share/omarchy/shell <file>
 # then: omarchy restart shell && journalctl --user -t omarchy-shell --since "-30 seconds"
-~/omarchy-setup/scripts/sync-configs.sh
-cd ~/omarchy-setup && git add -A && git commit -m "..." && git push
+~/omarchy-configs/scripts/sync-configs.sh
+cd ~/omarchy-configs && git add -A && git commit -m "..." && git push
 ```
 
 Before running `omarchy update`, do a quick `sync-configs.sh` as a snapshot.

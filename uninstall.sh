@@ -1,5 +1,5 @@
 #!/bin/bash
-# omarchy-setup uninstaller — one step at a time.
+# omarchy-configs uninstaller — one step at a time.
 # Reverts installed customizations back to stock Omarchy, with per-step
 # details, skip/proceed prompts, and progress indicators.
 #
@@ -44,7 +44,7 @@ show_overview() {
   clear
   echo ""
   HR
-  echo -e "  ${BOLD}${RED}omarchy-setup uninstaller${NC} ${BOLD}— revert to stock Omarchy${NC}"
+  echo -e "  ${BOLD}${RED}omarchy-configs uninstaller${NC} ${BOLD}— revert to stock Omarchy${NC}"
   echo -e "  ${DIM}${#names[@]} customization(s), reverted one step at a time.${NC}"
   HR
   echo ""

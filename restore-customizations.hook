@@ -9,7 +9,7 @@
 
 set -uo pipefail
 
-SETUP_DIR="$HOME/omarchy-setup"
+SETUP_DIR="$HOME/omarchy-configs"
 CONFIG_DIR="$HOME/.config"
 
 echo "--- Restoring customizations after Omarchy update ---"

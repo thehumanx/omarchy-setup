@@ -1,9 +1,9 @@
 #!/bin/bash
-# sync-configs.sh — Pull live configs back into omarchy-setup repo.
+# sync-configs.sh — Pull live configs back into omarchy-configs repo.
 
 set -euo pipefail
 
-REPO_DIR="$HOME/omarchy-setup"
+REPO_DIR="$HOME/omarchy-configs"
 CONFIG_DIR="$HOME/.config"
 SOURCE_DIR="$REPO_DIR/configs"
 
@@ -90,4 +90,4 @@ fi
 
 log_success "All configurations synced!"
 echo
-echo "Next: cd ~/omarchy-setup && git add -A && git commit -m 'Update configs' && git push"
+echo "Next: cd ~/omarchy-configs && git add -A && git commit -m 'Update configs' && git push"

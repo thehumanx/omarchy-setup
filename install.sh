@@ -1,5 +1,5 @@
 #!/bin/bash
-# omarchy-setup interactive installer — one step at a time.
+# omarchy-configs interactive installer — one step at a time.
 # Each step shows what it does, which files it touches, then lets you
 # proceed, skip, or abort. Progress shown per-step and overall.
 #
@@ -49,7 +49,7 @@ show_overview() {
   clear
   echo ""
   HR
-  echo -e "  ${BOLD}${CYAN}omarchy-setup installer${NC}"
+  echo -e "  ${BOLD}${CYAN}omarchy-configs installer${NC}"
   echo -e "  ${DIM}${#names[@]} customization(s), applied one step at a time.${NC}"
   HR
   echo ""

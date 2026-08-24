@@ -71,8 +71,8 @@ Other modes:
 
 1. **Overview first** — `./install.sh` clears the screen and lists every
    module with its one-line description, then waits for Enter (Ctrl+C cancels).
-2. **One step per module**, in fixed order: bar → wallpaper-pipeline →
-   lock → hyprland → branding → cursor → boot-lock → post-update-hook.
+2. **One step per module**, in fixed order: wallpaper-pipeline → lock →
+   hyprland → bar → branding → cursor → boot-lock → post-update-hook.
    Each step shows a header (`STEP n OF 8`) with an overall progress bar,
    a *"What this does"* explanation, and the exact **file plan** — every path
    labeled `ADD` (new file), `OVERWRITE` (backs up your existing copy first),
@@ -120,6 +120,12 @@ background (insets, corner radius, transparency) used by every bar widget.
 Edit that one file to retune the pill look everywhere; restart the shell to
 apply (`omarchy restart shell`).
 
+`custom.monitor` (the Display widget) adds a Windows-style Mirror/Extend
+toggle and Left/Right/Above/Below relative-position pills to the panel's
+second-monitor section, shown whenever exactly two displays are enabled.
+Applied live via `hyprctl eval hl.monitor(...)` — session-only, same as the
+existing brightness/scale controls, not persisted to `monitors.lua`.
+
 ### Wallpaper → theme pipeline
 `configs/wallpaper/` + `configs/portal/` — D-Bus service + theme generator
 that makes Nautilus "Set as Background" work on Hyprland. Right-click any
@@ -157,11 +163,19 @@ activated via gsettings (GTK), `hyprctl setcursor` (live), and
 `~/.config/hypr/` (loaded by `hyprland.lua` via pcall; persists across restarts).
 
 ### Boot lock
-`configs/boot-lock/` — SDDM keeps autologging you in, but `bootlock.lua` runs
-`omarchy-shell lock lock` the moment Hyprland starts, throwing the lock screen
-over the session instantly — every boot ends at your password prompt instead
-of an open desktop. Needs the hyprland module (pcall loader); pairs with the
-Lock screen module for visuals, works with the stock lock too.
+`configs/boot-lock/` — SDDM keeps autologging you in, but `bootlock.lua` throws
+the lock screen over the session the moment Hyprland starts, so every boot ends
+at your password prompt instead of an open desktop. It polls `omarchy-shell
+lock lock` every 100ms for up to 10s rather than firing once — `omarchy-shell`
+(Quickshell) launches off that same startup event and needs a moment to come
+up, so a single one-shot call can lose that race and silently do nothing.
+Needs the hyprland module (pcall loader); pairs with the Lock screen module
+for visuals, works with the stock lock too.
+
+Depends on SDDM autologin already being active — that's owned by Omarchy's own
+installer (on by default for standard, unencrypted installs), not by this repo.
+Without autologin, this module still installs and works, it's just redundant
+with the SDDM login prompt you'd already be typing a password at.
 
 ### Post-update hook
 Installs `restore-customizations.hook` via `omarchy hook install post-update`.

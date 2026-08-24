@@ -1,4 +1,12 @@
 -- Lock immediately after autologin — no delay, no desktop flash window.
 -- SDDM still autologins; this throws the custom lock screen over the session
 -- the moment Hyprland starts, so booting always ends at a password prompt.
-o.exec_on_start("omarchy-shell lock lock")
+--
+-- omarchy-shell (Quickshell, owner of the lock IPC target) is itself launched
+-- off this same hyprland.start event and takes a beat to come up. Firing the
+-- lock call immediately loses that race — the IPC target isn't registered
+-- yet, the call silently drops, and the session boots straight to an
+-- unlocked desktop. Retry until the shell answers "ok" instead of assuming
+-- it's ready; each attempt is a fresh process so a dropped call costs
+-- nothing.
+o.exec_on_start([[bash -c 'for i in $(seq 1 100); do [ "$(omarchy-shell lock lock 2>/dev/null)" = "ok" ] && exit 0; sleep 0.1; done']])

@@ -1,5 +1,39 @@
 # Changelog - Omarchy Setup
 
+## 2026-08-24 - Display widget: Mirror/Extend + relative position; installer order
+
+**Custom bar** (`omarchy/plugins/custom.monitor/Panel.qml`) — added a Windows-style
+"Duplicate/Extend" control to the Display panel's second-monitor section, plus
+relative positioning:
+
+1. **Mirror/Extend pills** — shown whenever exactly two displays are enabled.
+   Mirror duplicates the internal panel onto the external display; Extend
+   restores separate desktops. Applied live via `hyprctl eval hl.monitor(...)`
+   (the Lua-parser equivalent of the classic `monitor` keyword, since this
+   config's `monitors.lua` uses Hyprland's non-legacy Lua parser — plain
+   `hyprctl keyword monitor ...` is rejected on it).
+2. **Left/Right/Above/Below pills** — positions the external display relative
+   to the internal one using Hyprland's `auto-left/right/up/down` position
+   keywords, hidden while mirroring (position is meaningless when duplicated).
+   Both rows are keyboard-navigable (h/l/j/k) like the rest of the panel.
+3. Session-only, same as the existing brightness/scale/toggle controls in this
+   panel — not persisted to `monitors.lua`.
+4. **Installer reordered** — `MODULE_ORDER` in `install.sh`/`uninstall.sh` moved
+   `bar` (which owns this widget) to run after `hyprland` (keybindings/input/
+   monitors) instead of first, so bar customizations land after the base
+   Hyprland config is in place. README's documented step order updated to match.
+5. **Boot-lock retry** (`boot-lock/bootlock.lua`) — the lock call now polls
+   `omarchy-shell lock lock` every 100ms for up to 10s instead of firing once
+   on `hyprland.start`, since that event also launches `omarchy-shell` itself
+   and the one-shot call could race the shell's IPC coming up.
+
+### Files Modified
+- `configs/bar/plugins/custom.monitor/Panel.qml` — Mirror/Extend + position controls
+- `configs/bar/shell.json` — synced (drops a stray duplicate `omarchy.monitor` bar icon)
+- `configs/boot-lock/bootlock.lua` — retry loop instead of a one-shot lock call
+- `install.sh`, `uninstall.sh` — `MODULE_ORDER`: `bar` moved after `hyprland`
+- `README.md` — step order in "How installing works" updated to match
+
 ## 2026-08-21 - Modular step-by-step installer; remove lid-hibernate & force-shutdown
 
 The repo moved from a handful of flat scripts to a **module-based installer**:

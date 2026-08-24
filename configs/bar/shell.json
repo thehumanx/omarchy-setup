@@ -49,11 +49,22 @@
       ]
     },
     "position": "top",
-    "transparent": true
+    "transparent": false
   },
   "idle": {
     "lock": 300,
     "screensaver": 150
   },
-  "version": 1
+  "version": 1,
+  "plugins": [
+    {
+      "id": "custom.lock"
+    }
+  ],
+  "disabledPlugins": [
+    "omarchy.lock"
+  ],
+  "cloneSourceRestores": [
+    "custom.lock"
+  ]
 }

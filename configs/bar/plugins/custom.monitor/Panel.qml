@@ -27,6 +27,15 @@ Panel {
   property string monitorScale: ""
   property var displays: []
   property int enabledDisplayCount: 0
+  property var monitorInfoByName: ({})
+  readonly property bool externalMirroring: {
+    var info = root.monitorInfoByName[root.externalMonitor]
+    return !!info && info.mirrorOf !== "none"
+  }
+  function scaleForMonitor(name) {
+    var info = root.monitorInfoByName[name]
+    return (info && isFinite(info.scale) && info.scale > 0) ? info.scale : 1
+  }
 
   // Carry sub-notch touchpad deltas between wheel events.
   property real wheelAccumulator: 0
@@ -42,6 +51,7 @@ Panel {
   //                  j/k walks each row.
   // Mouse hover on a target updates root state via the components' `hovered`
   // signal so keyboard cursor and pointer share one highlight.
+  readonly property var positionDirections: ["left", "right", "up", "down"]
   readonly property var scalePresets: ["1", "1.25", "1.6", "2", "3", "4"]
   readonly property var scaleValues: {
     for (var i = 0; i < displays.length; i++) {
@@ -79,6 +89,10 @@ Panel {
     list.push("textsize")
     list.push("scale")
     if (displays.length > 1) list.push("monitors")
+    if (enabledDisplayCount === 2) {
+      list.push("mode")
+      if (!externalMirroring) list.push("position")
+    }
     return list
   }
 
@@ -87,12 +101,15 @@ Panel {
     if (section === "textsize") return 0    // slider sentinel at -1, like brightness
     if (section === "scale") return scaleValues.length
     if (section === "monitors") return displays.length
+    if (section === "mode") return 2
+    if (section === "position") return 4
     return 0
   }
 
   function sectionIsSingleRow(section) {
-    // brightness and text size are lone sliders; scale presets sit horizontally.
+    // brightness and text size are lone sliders; scale/mode/position sit horizontally.
     return section === "brightness" || section === "textsize" || section === "scale"
+      || section === "mode" || section === "position"
   }
 
   function sectionFirstIndex(section) {
@@ -134,10 +151,11 @@ Panel {
   // because adjustBrightness handles horizontal motion on the brightness
   // slider.
   function moveCursorH(delta) {
-    if (focusSection !== "scale") return
+    if (focusSection !== "scale" && focusSection !== "mode" && focusSection !== "position") return
+    var max = sectionCount(focusSection) - 1
     var next = selectedIndex + delta
     if (next < 0) next = 0
-    if (next > scaleValues.length - 1) next = scaleValues.length - 1
+    if (next > max) next = max
     selectedIndex = next
   }
 
@@ -155,6 +173,12 @@ Panel {
     if (focusSection === "monitors" && selectedIndex >= 0 && selectedIndex < displays.length) {
       var d = displays[selectedIndex]
       if (d) toggleDisplay(d.name, d.enabled)
+    }
+    if (focusSection === "mode" && selectedIndex >= 0 && selectedIndex < 2) {
+      setDisplayMode(selectedIndex === 0 ? "extend" : "mirror")
+    }
+    if (focusSection === "position" && selectedIndex >= 0 && selectedIndex < 4) {
+      setPosition(positionDirections[selectedIndex])
     }
     // brightness: no separate action; the slider value is the action.
   }
@@ -232,6 +256,50 @@ Panel {
 
   function refresh() {
     if (!stateProc.running) stateProc.running = true
+    if (!mirrorProc.running) mirrorProc.running = true
+  }
+
+  // Mirror/extend and relative position, like Windows' "Duplicate/Extend"
+  // display menu. This config uses Hyprland's Lua parser (monitors.lua), so
+  // `hyprctl keyword monitor ...` is rejected ("can't work with non-legacy
+  // parsers") — live changes have to go through `hyprctl eval hl.monitor(...)`,
+  // same call setScale's CLI (omarchy-hyprland-monitor-scaling) already uses.
+  // Session-only, same as toggleDisplay/setScale below — not persisted to
+  // monitors.lua.
+  // Hyprland only drops an existing mirror when told to explicitly — leaving
+  // `mirror` out of the call keeps whatever mirror source is already active.
+  function hlMonitorEval(name, position, scale, mirrorSource) {
+    return 'hl.monitor({ output = "' + name + '", mode = "preferred", position = "' + position
+      + '", scale = ' + scale + ', mirror = "' + (mirrorSource || "none") + '" })'
+  }
+
+  function setDisplayMode(mode) {
+    var target = root.externalMonitor
+    if (!target) return
+    var scale = root.scaleForMonitor(target)
+    var call
+    if (mode === "mirror") {
+      var source = root.internalMonitor
+      if (!source) return
+      call = root.hlMonitorEval(target, "auto", scale, source)
+    } else {
+      call = root.hlMonitorEval(target, root.lastExtendPosition || "auto", scale, "")
+    }
+    actionProc.command = ["hyprctl", "eval", call]
+    if (!actionProc.running) actionProc.running = true
+  }
+
+  // Remembers the last chosen relative position so switching back from
+  // Mirror to Extend restores it instead of resetting to "auto".
+  property string lastExtendPosition: ""
+
+  function setPosition(direction) {
+    var target = root.externalMonitor
+    if (!target) return
+    var scale = root.scaleForMonitor(target)
+    root.lastExtendPosition = "auto-" + direction
+    actionProc.command = ["hyprctl", "eval", root.hlMonitorEval(target, root.lastExtendPosition, scale, "")]
+    if (!actionProc.running) actionProc.running = true
   }
 
   function setBrightness(value) {
@@ -373,6 +441,7 @@ Panel {
   onDisplaysChanged: clampCursor()
   onScaleValuesChanged: clampCursor()
   onVisibleSectionsChanged: clampCursor()
+  onExternalMirroringChanged: clampCursor()
 
   // Only poll while the panel is open; the bar glyph tracks monitor count via
   // Quickshell.screens, and open-time refresh + Component.onCompleted cover the
@@ -401,6 +470,28 @@ Panel {
         root.focusedMonitor = String(lines[5] || "").trim()
         root.monitorScale = root.normalizeScale(String(lines[6] || "").trim())
         root.updateDisplays(String(lines[7] || "[]").trim())
+      }
+    }
+  }
+
+  // Fetches mirrorOf/scale per monitor directly from hyprctl, since
+  // omarchy-monitor-state only exposes a single collapsed mirror flag and
+  // doesn't say which display is the mirror source/target.
+  Process {
+    id: mirrorProc
+    command: ["hyprctl", "monitors", "all", "-j"]
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: {
+        var map = {}
+        try {
+          var parsed = JSON.parse(String(text || "[]"))
+          for (var i = 0; i < parsed.length; i++) {
+            var m = parsed[i]
+            if (m && m.name) map[m.name] = { mirrorOf: m.mirrorOf || "none", scale: Number(m.scale) }
+          }
+        } catch (e) {}
+        root.monitorInfoByName = map
       }
     }
   }
@@ -823,6 +914,79 @@ Panel {
             }
           }
 
+          // ---------- Arrange (mirror/extend + relative position) ----------
+          PanelSeparator {
+            visible: root.enabledDisplayCount === 2
+            foreground: root.bar.foreground
+          }
+
+          Column {
+            width: parent.width
+            spacing: Style.space(10)
+            visible: root.enabledDisplayCount === 2
+
+            PanelSectionHeader {
+              text: "ARRANGE"
+              foreground: root.bar.foreground
+              fontFamily: root.bar.fontFamily
+            }
+
+            Grid {
+              id: modeRow
+              width: parent.width
+              columns: 2
+              spacing: Style.spacing.xs
+
+              readonly property real cellWidth: (width - spacing) / 2
+
+              ModePill {
+                modeLabel: "Extend"
+                modeIndex: 0
+                width: modeRow.cellWidth
+              }
+              ModePill {
+                modeLabel: "Mirror"
+                modeIndex: 1
+                width: modeRow.cellWidth
+              }
+            }
+
+            Grid {
+              id: positionRow
+              width: parent.width
+              columns: 4
+              spacing: Style.spacing.xs
+              visible: !root.externalMirroring
+
+              readonly property real cellWidth: (width - spacing * 3) / 4
+
+              PositionPill {
+                positionLabel: "Left"
+                direction: "left"
+                positionIndex: 0
+                width: positionRow.cellWidth
+              }
+              PositionPill {
+                positionLabel: "Right"
+                direction: "right"
+                positionIndex: 1
+                width: positionRow.cellWidth
+              }
+              PositionPill {
+                positionLabel: "Above"
+                direction: "up"
+                positionIndex: 2
+                width: positionRow.cellWidth
+              }
+              PositionPill {
+                positionLabel: "Below"
+                direction: "down"
+                positionIndex: 3
+                width: positionRow.cellWidth
+              }
+            }
+          }
+
           Item {
             width: parent.width
             height: Style.space(4)
@@ -854,6 +1018,56 @@ Panel {
       root.cursorActive = true
       root.focusSection = "scale"
       root.selectedIndex = pill.scaleIndex
+    }
+  }
+
+  component ModePill: Button {
+    id: modePill
+    required property string modeLabel
+    required property int modeIndex
+
+    text: modeLabel
+    fontSize: Style.font.caption
+    foreground: root.bar.foreground
+    fontFamily: root.bar.fontFamily
+    horizontalPadding: Style.spacing.sm
+    verticalPadding: Style.spacing.controlPaddingY
+    bordered: true
+
+    active: (modeIndex === 1) === root.externalMirroring
+    hasCursor: root.cursorActive && root.focusSection === "mode" && root.selectedIndex === modeIndex
+
+    onClicked: root.setDisplayMode(modeIndex === 1 ? "mirror" : "extend")
+    onHovered: function(isHovered) {
+      if (!isHovered || root.reflowingText) return
+      root.cursorActive = true
+      root.focusSection = "mode"
+      root.selectedIndex = modePill.modeIndex
+    }
+  }
+
+  component PositionPill: Button {
+    id: positionPill
+    required property string positionLabel
+    required property string direction
+    required property int positionIndex
+
+    text: positionLabel
+    fontSize: Style.font.caption
+    foreground: root.bar.foreground
+    fontFamily: root.bar.fontFamily
+    horizontalPadding: Style.spacing.sm
+    verticalPadding: Style.spacing.controlPaddingY
+    bordered: true
+
+    hasCursor: root.cursorActive && root.focusSection === "position" && root.selectedIndex === positionIndex
+
+    onClicked: root.setPosition(direction)
+    onHovered: function(isHovered) {
+      if (!isHovered || root.reflowingText) return
+      root.cursorActive = true
+      root.focusSection = "position"
+      root.selectedIndex = positionPill.positionIndex
     }
   }
 

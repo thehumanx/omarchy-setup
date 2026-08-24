@@ -15,10 +15,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/install/modules/common.sh"
 
 MODULE_ORDER=(
-  bar
   wallpaper-pipeline
   lock
   hyprland
+  bar
   branding
   cursor
   boot-lock

@@ -1,5 +1,14 @@
 # Changelog - Omarchy Setup
 
+## 2026-08-25 - Bar sync: transparent background
+
+`configs/bar/shell.json` was out of sync with the live bar config — the repo
+still had `transparent: false` while the running bar had been switched to
+`transparent: true`. Synced the repo to match.
+
+### Files Modified
+- `configs/bar/shell.json` — `transparent: false` → `true`
+
 ## 2026-08-24 - Display widget: Mirror/Extend + relative position; installer order
 
 **Custom bar** (`omarchy/plugins/custom.monitor/Panel.qml`) — added a Windows-style

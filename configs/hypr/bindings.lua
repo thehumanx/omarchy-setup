@@ -80,8 +80,6 @@ o.bind("SUPER + CTRL + SHIFT + S", "Capture menu", "omarchy-menu toggle capture"
 -- Disable unused built-in feature shortcuts
 hl.unbind("SUPER + ALT + RETURN")        -- Tmux
 hl.unbind("SUPER + CTRL + RETURN")       -- Herdr
-hl.unbind("SUPER + CTRL + X")            -- Toggle dictation
-hl.unbind("F9")                          -- Dictation push-to-talk (start/stop)
 hl.unbind("SUPER + CTRL + Q")            -- Calculator
 hl.unbind("SUPER + CTRL + R")            -- Set reminder
 hl.unbind("SUPER + SHIFT + CTRL + R")    -- Clear reminders

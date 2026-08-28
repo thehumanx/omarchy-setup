@@ -132,6 +132,24 @@ that makes Nautilus "Set as Background" work on Hyprland. Right-click any
 image → Set as Background → full system recolors (borders, bar, terminals,
 btop, browser accent, etc.). Requires `python-dbus` and `python-gobject`.
 
+`wallpaper-to-theme` also guards bar contrast: after `aether` generates the
+theme, it samples the average color of the wallpaper's top strip (where the
+bar sits) with ImageMagick. If that strip is dark (luminance < 90/255), it
+writes a `shell.bar.toml` section override next to the generated theme —
+merged onto just the `[bar]` section by `omarchy-theme-set-templates`,
+leaving every other surface (popups, menu, controls, ...) on the theme's
+normal colors:
+- `text` — the theme's foreground, relit to L=0.85 in HSL, so `Color.bar.text`
+  (what every `custom.*` bar widget reads) stays legible instead of
+  inheriting whatever value `aether` picked.
+- `background` + `background-alpha` — the theme's background, relit to
+  L=0.16 with alpha dropped to 0.15, so the `CustomPill` chip behind each
+  widget (`custom.common/CustomPill.qml`, fixed 55% fill on top of this)
+  reads as a faint tint instead of a near-invisible near-black smear or an
+  oversaturated block.
+On a bright-topped wallpaper no override is written and the theme's normal
+colors apply everywhere, unchanged.
+
 ### Lock screen (separate from bar)
 Clones the stock Omarchy lock service and restyles only the visual layer:
 time/date/battery centered, password field hidden until typed, no border,

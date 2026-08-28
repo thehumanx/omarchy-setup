@@ -1,5 +1,30 @@
 # Changelog - Omarchy Setup
 
+## 2026-08-28 - Wallpaper pipeline: bar contrast guard for dark wallpapers
+
+On a dark-topped wallpaper (e.g. dense forest canopy), the bar sits over it
+with no solid backing, and whatever foreground/background `aether` picked for
+the generated theme sometimes had too little contrast to read — inactive
+workspace numbers, tray icons, and pill backgrounds all went near-invisible.
+
+`configs/wallpaper/wallpaper-to-theme` now samples the average color of the
+wallpaper's top strip (ImageMagick, resized to 1x1) right after `aether`
+generates the theme. Below a luminance threshold, it writes a `shell.bar.toml`
+section override next to the generated theme with a relit `bar.text` (theme
+foreground, HSL L=0.85) and a relit, low-alpha `bar.background` (theme
+background, HSL L=0.16, alpha 0.15) — merged onto just the `[bar]` section by
+Omarchy's existing `omarchy-theme-set-templates`, so every other surface
+(popups, menu, controls, ...) keeps the theme's normal colors. Bright-topped
+wallpapers get no override. Tuned interactively against a real dark wallpaper
+until both bar text and the `CustomPill` widget background read clearly
+without the pill looking like a solid, oversaturated block.
+
+### Files Modified
+- `configs/wallpaper/wallpaper-to-theme` — dark-top-strip detection + `[bar]`
+  section override (text + background + background-alpha)
+- `README.md` — documented the contrast guard under "Wallpaper → theme
+  pipeline"
+
 ## 2026-08-25 - Bar sync: transparent background
 
 `configs/bar/shell.json` was out of sync with the live bar config — the repo

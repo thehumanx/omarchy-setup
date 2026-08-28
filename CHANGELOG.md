@@ -1,5 +1,38 @@
 # Changelog - Omarchy Setup
 
+## 2026-08-28 - Wallpaper pipeline: portal reload on install + explicit Wallpaper routing
+
+"Set as Background" silently did nothing on a freshly set-up machine. Two
+causes, both fixed:
+
+1. **`xdg-desktop-portal` was never reloaded.** It only reads
+   `omarchy.portal` and `hyprland-portals.conf` at startup, so after
+   `install.sh` copied them the omarchy Wallpaper backend didn't exist to the
+   portal until the next log out / log in. `install/modules/wallpaper-pipeline.sh`
+   now runs `systemctl --user restart xdg-desktop-portal.service` at the end of
+   the install step (warns to re-login if that fails, e.g. over SSH).
+
+2. **Routing relied on list order.** `hyprland-portals.conf` had
+   `default=hyprland;gtk;omarchy` — fine only because this machine's
+   `xdg-desktop-portal-gtk` (1.15.3) doesn't advertise
+   `org.freedesktop.impl.portal.Wallpaper`. A newer gtk build does, and being
+   listed before `omarchy` it would win and only write GNOME gsettings keys
+   (nothing renders them on Hyprland). Now pinned explicitly:
+   `default=hyprland;gtk` plus `org.freedesktop.impl.portal.Wallpaper=omarchy`.
+
+Applied to the live config on this machine and the portal restarted.
+
+### Files Modified
+- `configs/portal/hyprland-portals.conf` — drop `omarchy` from `default=`,
+  add explicit `org.freedesktop.impl.portal.Wallpaper=omarchy` pin
+- `install/modules/wallpaper-pipeline.sh` — restart `xdg-desktop-portal.service`
+  after copying portal files; `details()` notes the pin and the restart
+- `install.sh` — post-install "Next steps" now mentions the portal restart /
+  re-login requirement
+- `README.md` — documented the routing pin and the "silent no-op → reload the
+  portal" troubleshooting note under "Wallpaper → theme pipeline", plus an
+  "After install" callout under "Setup on a new machine"
+
 ## 2026-08-28 - Wallpaper pipeline: bar contrast guard for dark wallpapers
 
 On a dark-topped wallpaper (e.g. dense forest canopy), the bar sits over it

@@ -30,6 +30,15 @@ install() {
   copy_file "$CONFIGS_DIR/portal/hyprland-portals.conf" \
             "$CONFIG_DIR/xdg-desktop-portal/hyprland-portals.conf" || rc=1
 
+  # xdg-desktop-portal only reads omarchy.portal and hyprland-portals.conf at
+  # startup, so a fresh install does nothing until the portal is reloaded.
+  # Restart it now so "Set as Background" works this session without a re-login.
+  if systemctl --user restart xdg-desktop-portal.service 2>/dev/null; then
+    log_success "Restarted xdg-desktop-portal (picked up new backend + routing)"
+  else
+    log_warn "Could not restart xdg-desktop-portal — log out and back in for the portal to take effect"
+  fi
+
   (( rc == 0 )) && log_success "Installed: wallpaper portal + theme generation pipeline"
   return $rc
 }
@@ -59,5 +68,9 @@ details() {
   file_row "ADD" "configs/wallpaper/wallpaper-to-theme"      "$CONFIG_DIR/omarchy/wallpaper-to-theme"
   file_row "ADD" "configs/portal/omarchy.portal"             "$HOME/.local/share/xdg-desktop-portal/portals/omarchy.portal"
   file_row "OVERWRITE" "configs/portal/hyprland-portals.conf" "$CONFIG_DIR/xdg-desktop-portal/hyprland-portals.conf"
+  info_row "Routing pins org.freedesktop.impl.portal.Wallpaper to the omarchy backend"
+  info_row "so a newer xdg-desktop-portal-gtk can't intercept the call."
+  info_row "Restarts xdg-desktop-portal.service so the backend works this session"
+  info_row "(otherwise it only takes effect after the next log out / log in)."
   info_row "Requires packages: python-dbus, python-gobject (checked during install)."
 }

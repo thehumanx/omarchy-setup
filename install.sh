@@ -126,6 +126,11 @@ run_steps() {
   echo -e "${BOLD}Next steps:${NC}"
   echo -e "  1. ${CYAN}hyprctl reload && hyprctl configerrors${NC}  — validate Hyprland changes"
   echo -e "  2. ${CYAN}omarchy restart shell${NC}                    — apply bar/lock screen changes"
+  echo -e "  3. If you installed the wallpaper pipeline: the installer restarts"
+  echo -e "     ${CYAN}xdg-desktop-portal.service${NC} for you, but if that was skipped"
+  echo -e "     (e.g. over SSH) log out and back in before testing Nautilus"
+  echo -e "     \"Set as Background\" — the portal only reads its backend + routing"
+  echo -e "     config at startup."
   echo ""
 }
 

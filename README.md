@@ -132,6 +132,18 @@ that makes Nautilus "Set as Background" work on Hyprland. Right-click any
 image → Set as Background → full system recolors (borders, bar, terminals,
 btop, browser accent, etc.). Requires `python-dbus` and `python-gobject`.
 
+`hyprland-portals.conf` pins `org.freedesktop.impl.portal.Wallpaper` to the
+`omarchy` backend explicitly — newer `xdg-desktop-portal-gtk` builds also
+implement that interface, and being listed first they would otherwise win and
+only write GNOME gsettings keys (nothing renders them on Hyprland). The
+installer restarts `xdg-desktop-portal.service` at the end of this step;
+`xdg-desktop-portal` only reads `omarchy.portal` and `hyprland-portals.conf`
+at startup, so without that restart the feature does nothing until you log out
+and back in. If "Set as Background" is silently a no-op on a machine you just
+set up, that missing reload is the first thing to check
+(`systemctl --user restart xdg-desktop-portal.service`, then retry; a full
+re-login is the sure fix).
+
 `wallpaper-to-theme` also guards bar contrast: after `aether` generates the
 theme, it samples the average color of the wallpaper's top strip (where the
 bar sits) with ImageMagick. If that strip is dark (luminance < 90/255), it
@@ -257,6 +269,11 @@ cd ~/omarchy-configs
 # or
 ./install.sh --all        # install everything
 ```
+
+> **After install:** the wallpaper pipeline restarts `xdg-desktop-portal`
+> automatically, but if you installed over SSH or the restart is skipped, log
+> out and back in before testing Nautilus "Set as Background" — the portal
+> backend and routing config are only read at portal startup.
 
 ---
 

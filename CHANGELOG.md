@@ -1,5 +1,25 @@
 # Changelog - Omarchy Setup
 
+## 2026-08-28 - Lock screen: detect the battery instead of hardcoding BAT0
+
+The lock screen battery line showed a bare `?%` on another machine. The
+`batteryProc` command in `configs/bar/plugins/custom.lock/LockView.qml` read
+`/sys/class/power_supply/BAT0/{status,capacity}` directly; that machine's
+battery isn't `BAT0` (laptops use `BAT0`/`BAT1`/`CMB0`/`macsmc-battery`/…), so
+`capacity` fell through to the `|| echo '?'` fallback and `status` came back
+empty.
+
+It now iterates `/sys/class/power_supply/*`, takes the first entry whose
+`type` is `Battery`, and prints `<icon> <capacity>%`. On a machine with no
+battery it prints nothing, so the label hides itself (previously a desktop
+would also have shown `?%`). Status→icon mapping is unchanged
+(Discharging ⚡ / Charging 🔌 / Full ✅ / Unknown ⚠; any other status prints
+verbatim).
+
+### Files Modified
+- `configs/bar/plugins/custom.lock/LockView.qml` — `batteryProc` scans for the
+  battery device instead of assuming `BAT0`
+
 ## 2026-08-28 - Wallpaper pipeline: portal reload on install + explicit Wallpaper routing
 
 "Set as Background" silently did nothing on a freshly set-up machine. Two

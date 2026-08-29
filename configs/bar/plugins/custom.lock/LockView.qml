@@ -76,7 +76,11 @@ Item {
 
   Process {
     id: batteryProc
-    command: ["sh", "-c", "echo \"$(cat /sys/class/power_supply/BAT0/status 2>/dev/null | sed 's/Discharging/⚡/; s/Charging/🔌/; s/Full/✅/; s/Unknown/⚠/') $(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null || echo '?')%\""]
+    // Scan for the first real battery instead of hardcoding BAT0 — laptops
+    // name it BAT0/BAT1/CMB0/macsmc-battery/... and the fixed path showed a
+    // bare "?%" on any machine where it wasn't BAT0. Prints nothing on a
+    // battery-less machine, so the label hides itself.
+    command: ["sh", "-c", "for b in /sys/class/power_supply/*; do [ \"$(cat \"$b/type\" 2>/dev/null)\" = Battery ] || continue; cap=$(cat \"$b/capacity\" 2>/dev/null) || continue; st=$(cat \"$b/status\" 2>/dev/null); case \"$st\" in Discharging) st=⚡;; Charging) st=🔌;; Full) st=✅;; Unknown) st=⚠;; esac; printf '%s %s%%' \"$st\" \"$cap\"; exit 0; done"]
     stdout: StdioCollector {
       waitForEnd: true
       onStreamFinished: root.batteryStatusText = text.trim()

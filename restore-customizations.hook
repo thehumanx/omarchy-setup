@@ -70,6 +70,14 @@ if [[ -d "$SETUP_DIR/configs/bar/plugins/custom.lock" ]]; then
   fi
 fi
 
+# ── App dock (inject into shell.json) ──────────────────────────────────
+echo "== App dock =="
+if [[ -d "$SETUP_DIR/configs/bar/plugins/custom.dock" ]]; then
+  if [[ -f "$CONFIG_DIR/omarchy/shell.json" ]] && command -v python3 &>/dev/null; then
+    python3 "$SETUP_DIR/install/dock-inject.py" "$CONFIG_DIR/omarchy/shell.json"
+  fi
+fi
+
 # ── Wallpaper pipeline ────────────────────────────────────────────────
 echo "== Wallpaper pipeline =="
 restore_config "$SETUP_DIR/configs/wallpaper/wallpaper-portal.py"  "$CONFIG_DIR/omarchy/wallpaper-portal.py"

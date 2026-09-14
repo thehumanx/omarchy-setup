@@ -11,6 +11,7 @@ echo "--- Restoring all customizations ---"
 
 # Load modules in defined order
 MODULE_ORDER=(
+  dock
   bar
   wallpaper-pipeline
   lock

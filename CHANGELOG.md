@@ -1,5 +1,75 @@
 # Changelog - Omarchy Setup
 
+## 2026-09-14 - New module: auto-hiding app dock
+
+Built a custom Quickshell plugin — `custom.dock` — and gave it its own
+install module, first in the step order. Not a bar widget: it's a
+standalone layer-shell surface (like the bar itself, but its own
+`PanelWindow`), so it can auto-hide and float independently of the bar.
+
+Behavior:
+- Shows every open top-level window (via `ToplevelManager`), grouped by app
+  and matched to desktop entries for name/icon.
+- Hidden by default. Parked just off-screen via an animated layer-shell
+  margin (the same "park past the edge" trick the stock bar uses for its
+  hide toggle), leaving only a small low-opacity nub at the exact sliver
+  that stays mapped on screen. Hovering that nub reveals the full dock;
+  it retracts ~400ms after the pointer leaves.
+- Position defaults to bottom-center; right-click empty dock space for a
+  small picker to switch top/left/right. Icons lay out in a column instead
+  of a row when docked to the left/right edge.
+- Right-click an icon for a context menu (via a `PopupWindow` anchored next
+  to the icon, same mechanism the bar uses for its own tooltip): New
+  Window, Close Window, Close All, and Pin to Dock/Unpin. A pinned app
+  stays in the dock — and launches from it via its desktop entry — even
+  after every window closes; pinned icons get a small 📌 badge.
+- Runs independently on every connected display: reveal/hover/menu state
+  lives per-screen (per-`PanelWindow`), not shared globally, so hovering
+  one monitor's dock never reveals another's. Position and pinned apps are
+  shared/global and persist to `~/.local/state/omarchy/dock.json`.
+
+Fixed along the way, before syncing to this repo:
+- The position picker used a horizontal `Row` unconditionally, which
+  overflowed and clipped when the dock itself was vertical (left/right) —
+  now a `Grid` that switches to a single column to match.
+- The parked ("hidden") state still showed the full bordered pill shape at
+  the edge, not just a hint. The pill's opacity now fades with the reveal
+  animation, so only a small fixed-opacity nub shows at rest.
+- Pin/unpin was a raw right-click on the icon, easy to trigger by accident
+  and with no room for other actions; replaced with the context menu above.
+- The tooltip that appeared over an icon on hover has been removed
+  entirely — it added noise without adding information.
+- Only instantiated on `Quickshell.screens[0]`; now instantiates via
+  `Variants` over `Quickshell.screens` like the bar does, one dock per
+  display.
+
+Install module mirrors `lock`'s shape (a plugin that isn't a stock-bar
+widget, activated by patching `shell.json`), but simpler — the dock isn't a
+clone of a first-party plugin, so there's no `disabledPlugins`/
+`cloneSourceRestores` bookkeeping, just a `plugins[]` entry.
+`configs/bar/shell.json` already carries that entry baked in (same as
+`custom.lock`), so a full `bar` install alone produces a working dock too;
+the dedicated module exists so it can be installed/skipped/uninstalled on
+its own.
+
+### Files Added
+- `configs/bar/plugins/custom.dock/{Dock.qml,manifest.json}` — the plugin
+- `install/modules/dock.sh` — install/uninstall module
+- `install/dock-inject.py` — adds `custom.dock` to `shell.json`'s `plugins[]`
+
+### Files Modified
+- `configs/bar/shell.json` — added `{"id": "custom.dock"}` to `plugins[]`
+- `install/modules/bar.sh` — excludes `custom.dock` from its blanket
+  copy/count/details, same treatment as `custom.lock`
+- `install.sh`, `uninstall.sh` — `MODULE_ORDER` now starts with `dock`
+- `recover-customizations.sh` — `MODULE_ORDER` now starts with `dock`
+- `restore-customizations.hook` — restores `custom.dock` (covered by the
+  existing blanket `configs/bar/plugins` tree restore) and re-runs
+  `dock-inject.py` after every `omarchy update`, mirroring the lock section
+- `README.md` — new "App dock" section (first, matching install order),
+  updated step count (8 → 9) and module order in the installer walkthrough,
+  updated uninstall extras list and structure tree
+
 ## 2026-08-28 - Lock screen: detect the battery instead of hardcoding BAT0
 
 The lock screen battery line showed a bare `?%` on another machine. The

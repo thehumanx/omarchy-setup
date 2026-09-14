@@ -59,6 +59,9 @@
   "plugins": [
     {
       "id": "custom.lock"
+    },
+    {
+      "id": "custom.dock"
     }
   ],
   "disabledPlugins": [

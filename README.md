@@ -14,17 +14,16 @@
 ## Why this exists
 
 Stock Omarchy is already great — this isn't a case for replacing it, just for
-tuning the handful of things that don't match how I actually use it:
+tuning the handful of things that don't match how I actually use it. Also some of the plugins on the marketplace are actual sh*t -- they are buggy, and do not persist on system update, and usually not as per my taste.
 
-- **I don't use themes.** I change my wallpaper on a whim and want the whole
-  system to derive its colors from *that*, automatically. Right-click an image,
+- **I don't use themes.** I change my wallpaper on a whim (by downloading images and right click -> set as wallpaper on Nautilus) and want the whole system to derive its colors from *that*, automatically. Right-click an image,
   set it as background, done.
-- **The stock lock screen isn't my taste.** Rebuilt the layout (see above).
+- **The stock lock screen isn't my taste.** Rebuilt the layout (see above). Also, I've dual booted with Windows and Fedora so the SSD isn't encrypted. This means I need my own system lock that triggers during boot. (Note: If you have your device encrypted, installing lockscreen module will ask you for unlock 2 times.)
 - **The bar deserved a *little* ricing.** Boxed pills with sane padding/gaps
-  instead of bare icons on a transparent strip.
-- **The cursor is purely subjective.** Afterglow is just the one I liked.
+  instead of bare icons on a transparent strip with some tweaks for multiple display support (the marketplace plugins came later, but i'd prefer my own).
+- **The cursor is purely subjective.** Afterglow is just the one I liked. Always been using this on Windows as well.
 
-None of this is "Omarchy is missing something." It's "here's what *my*
+None of this is "Omarchy is missing something." Although its marketplace is messy and confusing. It's "here's what *my*
 Omarchy looks like," kept in a repo so it survives updates and reinstalls.
 
 ---
@@ -40,10 +39,10 @@ per-step and overall:
 $ ./install.sh
 
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  STEP 3 OF 8 — Lock screen — restyled (centered clock, battery, hidden password field)
+  STEP 3 OF 9 — Lock screen — restyled (centered clock, battery, hidden password field)
   Module: lock
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  [█████████████░░░░░░░░░░░░░░░] 2/8 steps
+  [█████████████░░░░░░░░░░░░░░░] 2/9 steps
 
   What this does:
   Clones the stock Omarchy lock service and restyles only the visual layer...
@@ -71,9 +70,9 @@ Other modes:
 
 1. **Overview first** — `./install.sh` clears the screen and lists every
    module with its one-line description, then waits for Enter (Ctrl+C cancels).
-2. **One step per module**, in fixed order: wallpaper-pipeline → lock →
+2. **One step per module**, in fixed order: dock → wallpaper-pipeline → lock →
    hyprland → bar → branding → cursor → boot-lock → post-update-hook.
-   Each step shows a header (`STEP n OF 8`) with an overall progress bar,
+   Each step shows a header (`STEP n OF 9`) with an overall progress bar,
    a *"What this does"* explanation, and the exact **file plan** — every path
    labeled `ADD` (new file), `OVERWRITE` (backs up your existing copy first),
    `PATCH` (in-place edit), or `RUN` (command executed).
@@ -94,6 +93,8 @@ Same step-by-step UI in reverse. For each file the repo manages,
 (moving it back into place) or **removes the file outright** if it was
 installed fresh. A few extras per module:
 
+- **dock** — un-patches `shell.json` and removes the saved dock state
+  (`~/.local/state/omarchy/dock.json` — position + pinned apps)
 - **bar** — removes all `custom.*` plugins and runs `omarchy bar reset`
   to get the stock layout back
 - **hyprland** — restores stock Omarchy `.lua` configs; optional extras
@@ -108,6 +109,33 @@ The same summary/failure rules apply as during install.
 ---
 
 ## What's in each module
+
+### App dock (independent module, installed first)
+`configs/bar/plugins/custom.dock/` — a custom Quickshell plugin, not part of
+the stock bar. Auto-hiding dock showing every open window grouped by app:
+
+- **Hidden by default.** Only a faint low-opacity nub hints at the screen
+  edge; hovering it reveals the full dock, which slides away again once the
+  pointer leaves.
+- **Position** defaults to bottom-center; right-click empty dock space for a
+  tiny picker to switch top/left/right. Icons lay out vertically when docked
+  left/right.
+- **Pinning.** Right-click an app icon for a context menu — New Window /
+  Close Window / Close All / Pin to Dock (or Unpin). A pinned app stays in
+  the dock, launchable from it, even after every one of its windows closes;
+  a small 📌 badge marks pinned icons.
+- **Multi-monitor.** Runs independently on every connected display — each
+  screen gets its own hover/reveal state, so hovering one monitor's dock
+  never reveals another's.
+- Left-click activates the app (cycling between its windows if it has more
+  than one) or launches it if pinned-but-closed; middle-click closes the
+  focused window.
+
+Position and pinned apps are saved to `~/.local/state/omarchy/dock.json` —
+per-machine runtime state, not tracked by this repo (each machine keeps its
+own). `shell.json` is patched (via `install/dock-inject.py`) to load
+`custom.dock` as a service plugin; unlike lock, it isn't a clone of a
+first-party plugin, so there's nothing to un-disable on revert.
 
 ### Custom bar (all-or-nothing)
 `configs/bar/` — `shell.json` (bar layout), `shell.toml` (sizing), and all
@@ -222,6 +250,7 @@ omarchy-configs/
 ├── uninstall.sh                    # Interactive uninstaller (revert to stock)
 ├── install/modules/                # Install modules (one per feature)
 │   ├── common.sh                   # Shared menu/copy/backup functions
+│   ├── dock.sh                     # Auto-hiding app dock plugin
 │   ├── bar.sh                      # shell.json/toml + boxed-pill widget plugins
 │   ├── wallpaper-pipeline.sh       # Nautilus portal → theme generation
 │   ├── lock.sh                     # Restyled lock screen
@@ -231,8 +260,10 @@ omarchy-configs/
 │   ├── boot-lock.sh                # Lock screen at boot
 │   └── post-update-hook.sh         # Auto-restore after updates
 ├── install/lock-inject.py          # Patches shell.json to add lock config
+├── install/dock-inject.py          # Patches shell.json to add dock config
 ├── configs/                        # Module-organized config files
 │   ├── bar/                        # shell.json, shell.toml, custom.* plugins
+│   │   └── plugins/custom.dock/    # App dock plugin (its own module, see above)
 │   ├── boot-lock/                  # bootlock.lua (lock on Hyprland start)
 │   ├── branding/                   # ASCII art samples (populated during install)
 │   ├── cursor/                     # Afterglow cursor theme + cursor.lua
@@ -273,11 +304,13 @@ cd ~/omarchy-configs
 > **After install:** the wallpaper pipeline restarts `xdg-desktop-portal`
 > automatically, but if you installed over SSH or the restart is skipped, log
 > out and back in before testing Nautilus "Set as Background" — the portal
-> backend and routing config are only read at portal startup.
+> backend and routing config are only read at portal startup. If this doesnot work, sign out and sign back in.
 
 ---
 
 ## Daily workflow
+
+In case you made some tweaks on your own and backing up somewhere.
 
 ```bash
 # Make a change, test it, sync back to repo, commit
@@ -285,7 +318,6 @@ vim ~/.config/omarchy/plugins/custom.clock/BarWidget.qml
 # test with: qmllint -I /usr/share/omarchy/shell <file>
 # then: omarchy restart shell && journalctl --user -t omarchy-shell --since "-30 seconds"
 ~/omarchy-configs/scripts/sync-configs.sh
-cd ~/omarchy-configs && git add -A && git commit -m "..." && git push
 ```
 
 Before running `omarchy update`, do a quick `sync-configs.sh` as a snapshot.

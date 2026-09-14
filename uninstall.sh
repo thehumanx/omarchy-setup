@@ -15,6 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/install/modules/common.sh"
 
 MODULE_ORDER=(
+  dock
   wallpaper-pipeline
   lock
   hyprland

@@ -2,7 +2,7 @@
 # Module: bar — Custom bar (shell.json + shell.toml + custom.* bar widgets)
 # All-or-nothing: shell.json references all bar widgets.
 
-BAR_PLUGIN_COUNT=$(find "$CONFIGS_DIR/bar/plugins" -maxdepth 1 -name 'custom.*' -type d ! -name 'custom.lock' 2>/dev/null | wc -l)
+BAR_PLUGIN_COUNT=$(find "$CONFIGS_DIR/bar/plugins" -maxdepth 1 -name 'custom.*' -type d ! -name 'custom.lock' ! -name 'custom.dock' 2>/dev/null | wc -l)
 
 install() {
   log_header "[Custom bar]"
@@ -16,9 +16,9 @@ install() {
   copy_file "$CONFIGS_DIR/bar/shell.json" "$dst/shell.json" || return 1
   copy_file "$CONFIGS_DIR/bar/shell.toml" "$dst/shell.toml" || return 1
 
-  # Copy bar widget plugins (exclude custom.lock — handled by lock module)
+  # Copy bar widget plugins (exclude custom.lock/custom.dock — handled by their own modules)
   mkdir -p "$dst/plugins"
-  rsync -a --exclude='custom.lock' "$CONFIGS_DIR/bar/plugins/" "$dst/plugins/" || return 1
+  rsync -a --exclude='custom.lock' --exclude='custom.dock' "$CONFIGS_DIR/bar/plugins/" "$dst/plugins/" || return 1
   log_success "Installed: shell.json, shell.toml, $BAR_PLUGIN_COUNT bar widget plugins"
 }
 
@@ -56,9 +56,11 @@ details() {
   file_row "OVERWRITE" "configs/bar/shell.json"  "$CONFIG_DIR/omarchy/shell.json"
   file_row "OVERWRITE" "configs/bar/shell.toml"  "$CONFIG_DIR/omarchy/shell.toml"
   for d in "$CONFIGS_DIR/bar/plugins"/custom.*; do
-    [[ $(basename "$d") == "custom.lock" ]] && continue
+    case "$(basename "$d")" in
+      custom.lock|custom.dock) continue ;;
+    esac
     file_row "ADD" "$(basename "$d")/" "$CONFIG_DIR/omarchy/plugins/$(basename "$d")/"
   done
   info_row "Existing shell.json/shell.toml are backed up (.pre-omarchy-setup) for clean revert."
-  info_row "Lock screen is a separate module."
+  info_row "Lock screen and the app dock are separate modules."
 }

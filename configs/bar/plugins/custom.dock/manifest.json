@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "custom.dock",
+  "name": "Dock",
+  "version": "1.0.0",
+  "author": "bbk",
+  "description": "Auto-hiding app dock: shows running windows, supports pinning apps, hover-to-reveal, position left/right/top/bottom-center",
+  "kinds": [
+    "service"
+  ],
+  "entryPoints": {
+    "service": "Dock.qml"
+  }
+}

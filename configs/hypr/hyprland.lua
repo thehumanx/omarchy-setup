@@ -41,3 +41,7 @@ require("default.hypr.toggles")
 o.window({ tag = "chromium-based-browser" }, { idle_inhibit = "fullscreen" })
 o.window({ tag = "firefox-based-browser" }, { idle_inhibit = "fullscreen" })
 o.window("^(mpv)$", { idle_inhibit = "fullscreen" })
+
+-- No opacity change in any window state. Omarchy's default dims windows slightly
+-- (active 0.985 / inactive 0.96); force every window fully opaque, focused or not.
+o.window(".*", { opacity = "1.0 1.0" })

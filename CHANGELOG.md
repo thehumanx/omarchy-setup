@@ -1,5 +1,35 @@
 # Changelog - Omarchy Setup
 
+## 2026-09-16 - Fix bar popups freezing the desktop after a shell API change
+
+A recent Omarchy shell update made `bar.centerHoverRevealSuppressed`
+**read-only** and replaced it with a `setCenterHoverRevealSuppressed()`
+setter, but the cloned clock and weather panels still assigned to the old
+property. Assigning to a read-only property throws a QML `TypeError` — and in
+`Panel.close()` that throw happened *before* `controller.hide()`, so dismissing
+the calendar or weather popup could never run. The popup's full-screen
+click-catcher stayed mapped and the desktop appeared frozen: nothing on screen
+responded except the popup card itself, and every outside click just re-threw
+the same error instead of closing it.
+
+Both panels' `setCenterHoverRevealSuppressed()` now prefer the new setter and
+fall back to assigning the property only when the setter doesn't exist — the
+same guard the current stock panels use. The fallback keeps the configs
+compatible with older shells too, so this class of breakage won't recur on a
+future update.
+
+Also refreshed the **installed** post-update hook on the developing machine:
+it predated the App dock restore block added in `536e064` (dock added), so
+`omarchy update` wasn't re-running `dock-inject.py` after the dock module
+existed. The hook file in this repo was already current — only the installed
+copy under `~/.config/omarchy/hooks/post-update.d/` lagged behind, and it now
+matches the repo again.
+
+### Files Modified
+- `configs/bar/plugins/custom.clock/Panel.qml` — setter-first
+  `setCenterHoverRevealSuppressed()` (kept the old-property fallback)
+- `configs/bar/plugins/custom.weather/Panel.qml` — same change
+
 ## 2026-09-14 - New module: auto-hiding app dock
 
 Built a custom Quickshell plugin — `custom.dock` — and gave it its own

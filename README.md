@@ -154,6 +154,15 @@ second-monitor section, shown whenever exactly two displays are enabled.
 Applied live via `hyprctl eval hl.monitor(...)` — session-only, same as the
 existing brightness/scale controls, not persisted to `monitors.lua`.
 
+> **Bar API drift guard:** `Panel.open()`/`close()` in the cloned clock and
+> weather widgets touch `bar.centerHoverRevealSuppressed`, which the shell
+> made **read-only** (now a `setCenterHoverRevealSuppressed()` setter). If you
+> edit these panels on a newer shell, keep the setter-first guard in
+> `setCenterHoverRevealSuppressed()` — assigning the property directly throws
+> a QML `TypeError` inside `close()` *before* `controller.hide()`, which leaves
+> the popup's full-screen click-catcher mapped and the desktop frozen until the
+> shell restarts. See CHANGELOG `2026-09-16`.
+
 ### Wallpaper → theme pipeline
 `configs/wallpaper/` + `configs/portal/` — D-Bus service + theme generator
 that makes Nautilus "Set as Background" work on Hyprland. Right-click any

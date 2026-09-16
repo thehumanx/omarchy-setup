@@ -26,6 +26,13 @@ tuning the handful of things that don't match how I actually use it. Also some o
 None of this is "Omarchy is missing something." Although its marketplace is messy and confusing. It's "here's what *my*
 Omarchy looks like," kept in a repo so it survives updates and reinstalls.
 
+If you're end up using this, let me know it went for you (feedback/suggestions). Thanks for using. For anything, reach out to namaste@iambishistha.com.
+
+### Next up
+- Script to detect and download updates
+- Better documentations and easy install/uninstall scripts/UX
+
+
 ---
 
 ## Step-by-step installer
